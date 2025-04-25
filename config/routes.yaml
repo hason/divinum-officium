@@ -1,0 +1,51 @@
+routes:
+  index:
+    path: /
+    controller: App::Controller::Original::Pages
+    action: index
+
+  _help:
+    path: /www/horas/Help/{page}.html
+    controller: App::Controller::Original::Pages
+    action: help
+
+  _help_assets:
+    path: /www/horas/Help/{asset:.+\.(?:css|js|png|jpe?g|gif|ico|svg|woff2?|pdf|txt|conf)}
+    root: /public/Help
+
+  _calendar:
+    path: /cgi-bin/horas/kalendar.pl
+    controller: App::Controller::Original::Kalendar
+    action: calendar
+
+  missa_s:
+    path: /missa/
+    controller: App::Controller::Missa
+    action: show
+    method: GET
+
+  mobile:
+    path: /cgi-bin/horas/Pofficium.pl
+    controller: App::Controller::Original::Officium
+    action: mobile
+    method: GET
+
+  missa_post:
+    path: /missa/
+    controller: App::Controller::Missa
+    action: submit
+    method: POST
+
+  missa:
+    path: /cgi-bin/missa/missa.pl
+    controller: App::Controller::Original::Missa
+    action: redirect_old_url
+    method: GET
+
+  data:
+    path: /www/{file:.+\.txt}
+    root: /data
+
+  assets:
+    path: /{asset:.+\.(?:css|js|png|jpe?g|gif|ico|svg|woff2?|pdf)}
+    root: /public

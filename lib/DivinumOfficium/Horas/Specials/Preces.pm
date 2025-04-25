@@ -1,12 +1,14 @@
-# use strict;
-# use warnings;
+package DivinumOfficium::Horas::Specials::Preces;
+
+use strict;
+use warnings;
 use utf8;
+
+use DivinumOfficium::Globals;
 
 #*** preces($item)
 # returns 1 = yes or 0 = omit after deciding about the preces
-sub preces {
-  my $item = shift;
-
+sub preces($item) {
   our (
     $winner, %winner, $rule, $duplex, @dayname, $version,
     $commemoratio, %commemoratio, @commemoentries, $hora, $dayofweek,
@@ -70,12 +72,8 @@ sub preces {
   return 0;
 }
 
-sub getpreces {
-  my $hora = shift;
-  my $lang = shift;
-  my $flag = shift;    # 1 for 'Dominicales'
-
-  use v5.10;
+# $flag 1 for 'Dominicales'
+sub getpreces($hora, $lang, $flag) {
   state $precdomfer = $hora eq 'Prima';
   my ($src, $key);
 
@@ -100,5 +98,3 @@ sub getpreces {
   my %brevis = %{setupstring($lang, "Psalterium/Special/$src Special.txt")};
   $brevis{"Preces $key"};
 }
-
-1;

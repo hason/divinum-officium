@@ -1,24 +1,18 @@
-# Module for processing hour scripts.
 package DivinumOfficium::Scripting;
+
+use v5.38;
 use strict;
 use warnings;
-use Carp;
+use Exporter 'import';
 use Attribute::Handlers;
 
-BEGIN {
-  require Exporter;
-  our $VERSION = 1.00;
-  our @ISA = qw(Exporter);
-  our @EXPORT_OK = qw(
-    dispatch_script_function
-    parse_script_arguments);
-}
-use FindBin qw($Bin);
-use lib "$Bin/..";
+# Module for processing hour scripts.
+
+our @EXPORT_OK = qw(dispatch_script_function parse_script_arguments);
+
 my %script_functions;
 my @deferred_functions;
 
-#*** sub register_script_function($function_name, $code_ref, %params)
 # Registers a new script function (the sort invoked with & in the scripts).
 # $function_name is the name to be used in scripts in order to invoke it, and
 # $code_ref is a reference to the Perl sub that should handle it. By default
@@ -27,8 +21,7 @@ my @deferred_functions;
 #
 # This subroutine is intended to be called in response to the presence of an
 # appropriate attribute on some other subroutine.
-sub register_script_function {
-  my ($function_name, $code_ref, %params) = @_;
+sub register_script_function($function_name, $code_ref, %params) {
   $script_functions{$function_name}{$params{'short'} ? 'shortfunc' : 'func'} = $code_ref;
 }
 
@@ -72,8 +65,7 @@ sub register_deferred_functions {
 sub UNIVERSAL::ScriptFunc : ATTR(CODE,BEGIN) {&script_attr_handler}
 sub UNIVERSAL::ScriptShortFunc : ATTR(CODE,BEGIN) {&script_attr_handler}
 
-sub script_attr_handler {
-  my ($pkg, $symbol_ref, $code_ref, $attr, $name_override) = @_;
+sub script_attr_handler($pkg, $symbol_ref, $code_ref, $attr, $name_override) {
   my %params = ('short' => ($attr eq 'ScriptShortFunc'));
 
   if ($name_override || ref($symbol_ref) eq 'GLOB') {
@@ -91,7 +83,6 @@ sub script_attr_handler {
   }
 }
 
-#*** sub dispatch_script_function($function_name, @args)
 # Calls the script function $function_name with arguments @args.
 #
 # Calling a function that hasn't been registered is a fatal error. The @args
@@ -99,9 +90,7 @@ sub script_attr_handler {
 # extra implicit parameters are in here.
 #
 # Returns whatever the handling subroutine returns.
-sub dispatch_script_function {
-  my ($function_name, @args) = @_;
-
+sub dispatch_script_function($function_name, @args) {
   if (!exists($script_functions{$function_name})) {
 
     # No handler found. If there are any deferred functions still to be
@@ -109,20 +98,17 @@ sub dispatch_script_function {
     if (register_deferred_functions()) {
       return &dispatch_script_function;
     }
-    croak "Invalid script function $function_name.";
+    die "Invalid script function $function_name.";
   }
   my $code_ref = $script_functions{$function_name}{'func'};
-  croak "No handler registered for $function_name."
-    unless ref($code_ref) eq 'CODE';
+  die "No handler registered for $function_name." unless ref($code_ref) eq 'CODE';
   return $code_ref->(@args);
 }
 
-#*** sub parse_script_arguments($list_str)
 # Returns a list of arguments represented by a string from a script function
 # call. The syntax is very crude: only numeric literals and single-quoted
 # strings (with no escaping functionality) are supported.
-sub parse_script_arguments {
-  my $list_str = shift;
+sub parse_script_arguments($list_str) {
   return () unless defined($list_str);
 
   # Extract individual parameters from the argument string.
@@ -130,4 +116,3 @@ sub parse_script_arguments {
     split /,(?=(?:[^']|'[^']*')*$)/,           # Comma followed by balanced quotes.
     $list_str;
 }
-1;

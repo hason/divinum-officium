@@ -1,26 +1,26 @@
-#!/usr/bin/perl
-use utf8;
+package DivinumOfficium::Horas::Common;
 
-# Name : Laszlo Kiss
-# Date : 01-25-08
-# horas common files to reconcile tempora & sancti also for missa
-# use warnings;
-# use strict;
-use FindBin qw($Bin);
-use lib "$Bin/..";
+use v5.38;
+use strict;
+use warnings;
+use utf8;
+use Exporter 'import';
+
+our @EXPORT_OK = qw(occurrence concurrence precedence setheadline gettoday error gettempora subdirname rankname);
+
+use DivinumOfficium::Globals;
 use DivinumOfficium::Scripting qw(dispatch_script_function parse_script_arguments);
 use DivinumOfficium::Date qw(getweek leapyear geteaster get_sday nextday day_of_week monthday);
-use DivinumOfficium::Directorium qw(get_from_directorium transfered );
+use DivinumOfficium::Directorium qw(get_from_directorium get_kalendar get_transfer get_tempora transfered );
+use DivinumOfficium::SetupString qw(setupstring checklatinfile officestring);
+use DivinumOfficium::DialogCommon qw(getdialog);
 
-sub error {
-  my $t = shift;
+sub error($t) {
   our $error .= "= $t =<br/>";
 }
 
-sub occurrence {
-  my ($day, $month, $year, $version, $tomorrow) =
-    @_;    # sort out occurence for the day or the next day in case of $tomorrow
-
+# sort out occurence for the day or the next day in case of $tomorrow
+sub occurrence($day, $month, $year, $version, $tomorrow) {
   # globals readonly
   our ($testmode, $hora, $missa, $caller, $datafolder, $lang2);
 
@@ -156,7 +156,7 @@ sub occurrence {
     my $kalentries = get_from_directorium('kalendar', $version, $sday);
     @commemoentries = split("~", $kalentries);
 
-    foreach $kalentry (@commemoentries) {
+    foreach my $kalentry (@commemoentries) {
       if ($kalentry) {
         if ($kalentry !~ /tempora/i) {
           $kalentry = subdirname('Sancti', $version) . "$kalentry";
@@ -731,9 +731,8 @@ sub occurrence {
   $comrank =~ s/\s*//g;
 }
 
-sub concurrence {
-  my ($day, $month, $year, $version) = @_;    # sort out concurrence for the day and the next day
-
+# sort out concurrence for the day and the next day
+sub concurrence($day, $month, $year, $version) {
   # globals readonly
   our ($hora, $missa, $caller, $datafolder, $lang2);
 
@@ -767,8 +766,10 @@ sub concurrence {
   $csanctoraloffice = $sanctoraloffice;
   %ctempora = %tempora;
   %csaint = %saint;
+  my $cwrank;
   my %cwinner = $csanctoraloffice ? %csaint : %ctempora;
   my @cwrank = $csanctoraloffice ? @csrank : @ctrank;
+  my $weekname = $dayname[0];
 
   occurrence($day, $month, $year, $version, 0);    # get today's office
   %winner = $sanctoraloffice ? %saint : %tempora;
@@ -809,7 +810,7 @@ sub concurrence {
   }
 
   if ( $cwrank[0] =~ /in.*octava/i
-    && ($wrank[0] =~ /Dominica/i || ($winner =~ /Sancti/ && $wrank !~ /in.*octava/i))
+    && ($wrank[0] =~ /Dominica/i || ($winner =~ /Sancti/ && $wrank[0] !~ /in.*octava/i))
     && $version =~ /divino/i)
   {
 
@@ -1187,7 +1188,7 @@ sub concurrence {
         my @comentries = ();
         my %cstr = ();
 
-        foreach $commemo (@commemoentries) {
+        foreach my $commemo (@commemoentries) {
           if (!(-e "$datafolder/Latin/$commemo") && $commemo !~ /txt$/i) { $commemo =~ s/$/\.txt/; }
           %cstr = %{officestring('Latin', $commemo, 0)};
 
@@ -1216,7 +1217,7 @@ sub concurrence {
     my @comentries = ();
     my %cstr = ();
 
-    foreach $commemo (@ccommemoentries) {
+    foreach my $commemo (@ccommemoentries) {
       if (!(-e "$datafolder/Latin/$commemo") && $commemo !~ /txt$/i) { $commemo =~ s/$/\.txt/; }
       %cstr = %{officestring('Latin', $commemo, 1)};
 
@@ -1242,7 +1243,7 @@ sub concurrence {
       : 2;
     @comentries = ();
 
-    foreach $commemo (@commemoentries) {
+    foreach my $commemo (@commemoentries) {
 
       if ($commemo =~ /tempora/i && (($trank[2] < 2 && $trank[2] != 1.15) || $trank[0] =~ /Rogatio|Quattuor.*Sept/i)) {
         next;    # Feria minor, Rogation days, Q.T. in Sept., and Vigils have no Vespers if superseded
@@ -1275,7 +1276,7 @@ sub concurrence {
     my %cstr = ();
     @comentries = ();
 
-    foreach $commemo (@commemoentries) {
+    foreach my $commemo (@commemoentries) {
       if ($commemo =~ /tempora/i && $trank[2] != 1.15 && ($trank[2] < 2 || $trank[0] =~ /Rogatio|Quattuor.*Sept/i)) {
         next;
       }    # Feria minor and Vigils have no Vespers if superseded
@@ -1304,7 +1305,7 @@ sub concurrence {
       : 1;
     @comentries = ();
 
-    foreach $commemo (@ccommemoentries) {
+    foreach my $commemo (@ccommemoentries) {
       if (!(-e "$datafolder/Latin/$commemo") && $commemo !~ /txt$/i) { $commemo =~ s/$/\.txt/; }
       %cstr = %{officestring('Latin', $commemo, 1)};
 
@@ -1402,8 +1403,7 @@ sub emberday {
 #get the currend date in mm-dd-yyy format
 # flag is set only for primary call for the standalone version
 # for the web version javascrip function obtains the user's date
-sub gettoday {
-  my $flag = shift;
+sub gettoday($flag =  undef) {
   if (our $browsertime && !$flag) { return $browsertime; }
   my @date = localtime(time());
   my $month = $date[4] + 1;
@@ -1711,8 +1711,7 @@ sub precedence {
 
 #*** climit1960($commemoratio)
 # returns 1 if commemoratio is allowed for 1960 rules
-sub climit1960 {
-  my $c = shift;
+sub climit1960($c) {
   if (!$c) { return 0; }
 
   # read only globals
@@ -1748,9 +1747,7 @@ sub setheadline {
 
 #*** rankname($lang);
 # returns the rank, in $lang
-sub rankname {
-  my $lang = shift;
-
+sub rankname($lang) {
   # read only globals
   our ($rank, $winner, $commune, $version, $day, $month, $year, $dayofweek, $hora);
 
@@ -1852,15 +1849,13 @@ sub rankname {
   $rankname =~ s/\n//gr;
 }
 
-sub subdirname {
-  my ($subdir, $version) = @_;
+sub subdirname($subdir, $version) {
   return "${subdir}M/" if $version =~ /^Monastic/;
   return "${subdir}OP/" if $version =~ /^Ordo Praedicatorum/;
   "$subdir/";
 }
 
-sub nomatinscomm {
-  my $w = shift;
+sub nomatinscomm($w) {
   my %w = %$w;
   if ($w{Rule} =~ /9 lectiones/i && exists($w{Responsory9})) { return 1; }
   if ($w{Rule} !~ /9 lectiones/i && exists($w{Responsory3})) { return 1; }
@@ -1874,8 +1869,7 @@ sub nooctnat {
 }
 
 # Latin spelling variety in versions
-sub spell_var {
-  my $t = shift;
+sub spell_var($t) {
   our $version;
 
   if ($version =~ /196/) {
@@ -1907,8 +1901,8 @@ sub spell_var {
 #*** papal_commem_rule($rule)
 #	Determines whether a rule contains a clause for a commemorated Pope.
 #	Returns a list ($class, $name), as for papal_rule.
-sub papal_commem_rule($) {
-  return papal_rule(shift, (commemoration => 1));
+sub papal_commem_rule($rule) {
+  return papal_rule($rule, (commemoration => 1));
 }
 
 #*** papal_rule($rule, %params)
@@ -1921,8 +1915,7 @@ sub papal_commem_rule($) {
 #	Pope is a confessor, doctor or martyr, respectively; and $name is
 #	the name(s) of the Pope(s). The empty list is returned if there is
 #	no match.
-sub papal_rule($%) {
-  my ($rule, %params) = @_;
+sub papal_rule($rule, %params) {
   my $classchar = $params{'commemoration'} ? 'C' : 'O';
   return ($rule =~ /${classchar}Papa(e)?([CMD])=(.*?);/i);
 }
@@ -1932,8 +1925,7 @@ sub papal_rule($%) {
 #	Supreme Pontiffs, where $lang is the language; $plural, $class and
 #	$name are as returned by papal_rule; and $type optionally specifies
 #	the key for the template (otherwise, it will be 'Oratio').
-sub papal_prayer($$$$;$) {
-  my ($lang, $plural, $class, $name, $type) = @_;
+sub papal_prayer($lang, $plural, $class, $name, $type =  undef) {
   $type ||= 'Oratio';
 
   # Get the prayer from the common.
@@ -1965,8 +1957,7 @@ sub papal_prayer($$$$;$) {
 #*** papal_antiphon_dum_esset($lang)
 #	Returns the Magnificat antiphon "Dum esset" from the Common of
 #	Supreme Pontiffs, where $lang is the language.
-sub papal_antiphon_dum_esset($) {
-  my $lang = shift;
+sub papal_antiphon_dum_esset($lang) {
   our $version;
   my %papalcommon = %{setupstring($lang, subdirname('Commune', $version) . "C4.txt")};
   return $papalcommon{'Ant 3 summi Pontificis'};
@@ -1975,9 +1966,8 @@ sub papal_antiphon_dum_esset($) {
 #*** sub gettempora($caller)
 # return $name of tempora
 # depending on caller
-sub gettempora {
+sub gettempora($caller) {
   our ($version, @dayname, $dayofweek, $day);
-  my $caller = shift;
   my $tname =
       ($dayname[0] =~ /^Adv[34]$/ && $caller eq 'Invitatorium') ? 'Adv3'
     : ($dayname[0] =~ /^Adv/ && $caller ne 'Doxology' && $caller ne 'Nunc dimittis') ? 'Adv'
@@ -2034,4 +2024,3 @@ sub gettempora {
 
   $tname;
 }
-1;

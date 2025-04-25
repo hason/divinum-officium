@@ -1,18 +1,21 @@
-#!/usr/bin/perl
+package DivinumOfficium::Horas::Monastic;
+
+use v5.38;
 use utf8;
+use strict;
+use warnings;
+use Exporter 'import';
 
-# Name : Laszlo Kiss
-# Date : 01-25-08
-# horas common files to reconcile tempora & sancti
-#use warnings;
-#use strict "refs";
-#use strict "subs";
-use FindBin qw($Bin);
-use lib "$Bin/..";
-
-# Defines ScriptFunc and ScriptShortFunc attributes.
+use DivinumOfficium::Globals;
 use DivinumOfficium::Scripting;
-my $a = 4;
+use DivinumOfficium::Horas::Specials qw(setbuild setbuild1 setbuild2 setcomment);
+use DivinumOfficium::Horas::Common qw(gettempora);
+use DivinumOfficium::SetupString qw(setupstring);
+use DivinumOfficium::Horas::Horas qw(columnsel);
+use DivinumOfficium::LanguageTextTools qw(alleluia_ant);
+use DivinumOfficium::Horas::Specmatins qw(getantmatutinum);
+
+our @EXPORT_OK = qw(psalmi_matutinum_monastic);
 
 #*** makeferia()
 # generates a name and office for feria
@@ -27,8 +30,7 @@ sub makeferia {
 #*** psalmi_matutinum_monastic($lang)
 # generates the appropriate psalm and lessons
 # for the monastic version
-sub psalmi_matutinum_monastic {
-  my $lang = shift;
+sub psalmi_matutinum_monastic($lang) {
   our $psalmnum1 = our $psalmnum2 = -1;    # Psalm 3 as 0
 
   #** reads the set of antiphons-psalms from the psalterium
@@ -349,10 +351,7 @@ sub psalmi_matutinum_monastic {
 
 #*** monastic_lectio3($w, $lang)
 # return the legend if appropriate
-sub monastic_lectio3 {
-  my $w = shift;
-  my $lang = shift;
-
+sub monastic_lectio3($w, $lang) {
   if ( $winner !~ /Sancti/i
     || exists($winner{Lectio3})
     || $rank >= 4
@@ -368,9 +367,7 @@ sub monastic_lectio3 {
 }
 
 #*** absolutio_benedictio($lang)
-sub absolutio_benedictio {
-  my $lang = shift;
-
+sub absolutio_benedictio($lang) {
   my @a;
   my ($abs, $ben);
 
@@ -404,9 +401,7 @@ sub absolutio_benedictio {
 }
 
 #*** legend_monastic($lang)
-sub legend_monastic {
-  my $lang = shift;
-
+sub legend_monastic($lang) {
   #1 lesson
   absolutio_benedictio($lang);
   my %w = (columnsel($lang)) ? %winner : %winner2;
@@ -442,8 +437,7 @@ sub legend_monastic {
 }
 
 #*** brevis_monstic($lang)
-sub brevis_monastic {
-  my $lang = shift;
+sub brevis_monastic($lang) {
   absolutio_benedictio($lang);
   my $lectio;
   my %w = columnsel($lang) ? %winner : %winner2;
@@ -474,10 +468,7 @@ sub brevis_monastic {
   push(@s, $lectio);
 }
 
-sub lectioE {
-
-  my $lang = shift;
-
+sub lectioE($lang) {
   my @e;
   my %w = columnsel($lang) ? %winner : %winner2;
   my %com = columnsel($lang) ? %commune : %commune2;
@@ -550,9 +541,7 @@ sub lectioE_required {
 
 #*** sub regula_vel_lectio_evangeli
 # for Ordo Praedicatorum
-sub regula_vel_evangelium {
-  my $lang = shift;
-
+sub regula_vel_evangelium($lang) {
   my @output = (prayer('Jube domne', $lang));
   my %r = %{setupstring($lang, 'Regula/OrdoPraedicatorum.txt')};
 
@@ -572,8 +561,7 @@ sub regula_vel_evangelium {
 
 #*** regula($lang)
 #returns the text of the Regula for the day
-sub regula {
-  my $lang = shift;
+sub regula($lang) {
   return regula_vel_evangelium($lang) if $version =~ /Ordo Praedicatorum/i;
 
   my @a;

@@ -1,16 +1,21 @@
-#!/usr/bin/perl
+package DivinumOfficium::Setup;
+
+use v5.38;
+use strict;
+use warnings;
 use utf8;
+use Exporter 'import';
 
-# Name : Laszlo Kiss
-# Date : 01-20-08
-# Divine Office Setup
+our @EXPORT_OK = qw(getsetup loadsetup setsetupvalue setsetup savesetup setuptable getsetupvalue);
 
-local %_setup;
+use DivinumOfficium::Globals;
+#use DivinumOfficium::DialogCommon qw(getdialog); # Cyclic dependency
+use DivinumOfficium::SetupString qw(setupstring);
+#use DivinumOfficium::Horas::Webdia qw(htmlInput);
 
-#*** getsetup($name)
-sub getsetup {
-  my ($name) = @_;
+my %_setup;
 
+sub getsetup($name) {
   if (wantarray) {
     return split(',', $_setup{$name});
   } else {
@@ -18,9 +23,7 @@ sub getsetup {
   }
 }
 
-sub loadsetup {
-  my ($setup) = @_;
-
+sub loadsetup($setup) {
   if ($setup) {
     %_setup = split(';;;', $setup);
   } else {
@@ -31,8 +34,7 @@ sub loadsetup {
 
 #*** setsetupvalue($name, $ind, $value)
 # set $value to the $ind-th line of $setup{$name} hash item
-sub setsetupvalue {
-  my ($name, $ind, $value) = @_;
+sub setsetupvalue($name, $ind, $value) {
   my $script = $_setup{$name};
   $script =~ s/\n\s*//g;
   my @script = split(';;', $script);
@@ -43,9 +45,7 @@ sub setsetupvalue {
 
 #*** setsetup($name, $value1, $value2 ...)
 # set the values into $setup{$name} hash item
-sub setsetup {
-  my ($name, @values) = @_;
-
+sub setsetup($name, @values) {
   for (my $i = 0; $i < @values; $i++) {
     setsetupvalue($name, $i, $values[$i]);
   }
@@ -53,8 +53,7 @@ sub setsetup {
 
 #*** savesetup(\%hash, $sep)
 #returns the referenced hash as key=value$sep string
-sub savesetup {
-  my $flag = shift;
+sub savesetup($flag) {
   my $str = "";
 
   foreach (sort keys %_setup) {
@@ -76,8 +75,7 @@ sub savesetup {
 # each line have 3 to 5 elements separated by '~>' sign
 # labelstring~>$default~>type~>mode~>condition
 
-sub setuptable {
-  my ($command, $title) = @_;
+sub setuptable($command, $title) {
   $title =~ s/setupparameters/Options/i;
 
   my $output = <<"PrintTag";
@@ -86,7 +84,7 @@ sub setuptable {
 PrintTag
 
   my $scripto = getdialog($command);
-  if (!$scripto) { beep(); $error = 'No setup parameter'; return; }
+  if (!$scripto) { $error = 'No setup parameter'; return; }
   my $helpfile = "$htmlurl/help/horashelp.html";
   $helpfile =~ s/\//\\/g;
 
@@ -140,7 +138,8 @@ sub getsetupvalue {
       $parpos = $i;
       $i++;
     }
-    my $value = cleanse($q->param("I$parpos"));
+    #my $value = cleanse($q->param("I$parpos"));
+    my $value;
     if (!$value && $value ne '0') { $value = ''; }
     if ($value =~ /^on$/) { $value = 1; }
     $$parvalue = $value;

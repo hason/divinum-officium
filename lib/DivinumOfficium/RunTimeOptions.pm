@@ -1,20 +1,17 @@
 package DivinumOfficium::RunTimeOptions;
+
+use v5.38;
 use utf8;
 use strict;
 use warnings;
+use Exporter 'import';
 
-BEGIN {
-  require Exporter;
-  our $VERSION = 1.00;
-  our @ISA = qw(Exporter);
-  our @EXPORT_OK = qw(check_version check_horas check_language);
-}
+use DivinumOfficium::DialogCommon qw(getdialog);
 
-# private
+our @EXPORT_OK = qw(check_version check_horas check_language);
 
-sub unequivocal {
-  my ($value, $tablename) = @_;
-  my @values_array = main::getdialog($tablename);
+sub unequivocal($value, $tablename) {
+  my @values_array = getdialog($tablename);
 
   my @r = grep {/$value/} @values_array;
 
@@ -65,13 +62,8 @@ use constant LEGACY_MISSA_VERSION_NAMES => {
   'Ordo Praedicatorum - 1962' => 'Ordo Praedicatorum Dominican 1962',
 };
 
-# exported
-
-sub check_version {
-  my $v = shift;
-  my $missa = shift;
-
-  return undef unless $v;
+sub check_version($v, $missa = undef) {
+  return unless $v;
 
   if (!$missa) {
     return LEGACY_VERSION_NAMES->{$v} || unequivocal($v, 'versions');
@@ -80,16 +72,10 @@ sub check_version {
   }
 }
 
-sub check_horas {
-  my $h = shift;
-
+sub check_horas($h) {
   map { unequivocal($_, 'horas') } split(/(?=\p{Lu}\p{Ll}*)/, $h);
 }
 
-sub check_language {
-  my $l = shift;
-
+sub check_language($l) {
   unequivocal($l, 'languages');
 }
-
-1;

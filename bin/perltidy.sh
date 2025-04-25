@@ -2,7 +2,7 @@
 
 set -e
 
-for file in $(find . -name '*.pl' -o -name '*.pm' | sort); do
+for file in $(find lib -name '*.pl' -o -name '*.pm' | sort); do
   echo "$file"
-  perltidy "$file"
+  ! carmel exec perltidy "$file"
 done

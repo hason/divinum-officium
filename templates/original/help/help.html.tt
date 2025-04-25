@@ -1,28 +1,4 @@
-<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01 Transitional//EN'>
-<HTML><HEAD>
-  <META NAME='author' CONTENT='Divinum Officium Project'>
-  <META NAME='Resource-type' CONTENT='Document'>
-  <META NAME='description' CONTENT='Breviarium Romanum'>
-  <META NAME='keywords' CONTENT='Church tradition, Breviarium, Divine Office, liturgy, Tridentine, old rite, Officium Divinum, Divinum Officium, breviary, missal, Missale, Missale Romanum, Mass, Missa, Misa, liturgie, liturgia, Messe, catholique, Catholic'>
-  <TITLE>Divinum Officium Help</TITLE>
-  <link rel='stylesheet' href='brevi.css' type='text/css'>
-</HEAD>
-<BODY BGCOLOR='#eeeeee' TEXT='#333333'><BR><BR>
-
-
-<CENTER>
-<A HREF="versions.html">Versions</A>
-&nbsp;&nbsp;&nbsp;&nbsp; 
-<A HREF="credits.html">Credits</A>
-&nbsp;&nbsp;&nbsp;&nbsp; 
-<A HREF="download.html">Download</A>
-&nbsp;&nbsp;&nbsp;&nbsp; 
-<A HREF="rubrics.html">Rubrics</A>
-&nbsp;&nbsp;&nbsp;&nbsp; 
-<A HREF="technical.html">Technical</A>
-&nbsp;&nbsp;&nbsp;&nbsp; 
-Help
-</FONT></CENTER><BR><BR>
+[% WRAPPER 'original/help/layout.html.tt' title='Divinum Officium Help' %]
 <CENTER><TABLE WIDTH=90% BORDER=0 BGCOLOR='white' CELLSPACING=12><TR><TD>
 <H2 ALIGN=CENTER><FONT COLOR=MAROON>Getting Started</FONT></H2>
 Divinum Officium Desktop displays:<BR><BR>
@@ -133,17 +109,4 @@ If the site is not displaying properly, please first clear both cache and cookie
 We also accept monetary contributions via Venmo or PayPal. Please see our <A HREF="http://divinumofficium.com">main page</a>. Our maintenance costs increase yearly; may God reward your kind generosity. Any donations received over and above the operating and maintenance costs of this website go to support the work of Roman Catholic clergy and religious involved with the traditional liturgy. All friends, users, and benefactors are remembered in a monthly Traditional Latin Mass as well as daily in the prayers of this Divine Office.<BR><BR>
 <CENTER><span class=tadmn>T.A.D.M.N.</span><BR></CENTER>
 </TD></TR></TABLE><BR>
-
-<CENTER>
-<A HREF="versions.html">Versions</A>
-&nbsp;&nbsp;&nbsp;&nbsp; 
-<A HREF="credits.html">Credits</A>
-&nbsp;&nbsp;&nbsp;&nbsp; 
-<A HREF="download.html">Download</A>
-&nbsp;&nbsp;&nbsp;&nbsp; 
-<A HREF="rubrics.html">Rubrics</A>
-&nbsp;&nbsp;&nbsp;&nbsp; 
-<A HREF="technical.html">Technical</A>
-&nbsp;&nbsp;&nbsp;&nbsp; 
-Help
-</FONT></CENTER></BODY><BR><BR><BR></HTML>
+[% END %]

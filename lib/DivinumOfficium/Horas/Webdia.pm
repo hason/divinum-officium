@@ -1,145 +1,21 @@
-#!/usr/bin/perl
+package DivinumOfficium::Horas::Webdia;
+
+use v5.38;
 use utf8;
+use strict;
+use warnings;
+use Exporter 'import';
 
-# Name : Laszlo Kiss
-# Date : 01-11-04
-# WEB dialogs
-#use warnings;
-#use strict "refs";
-#use strict "subs";
-my $a = 4;
+our @EXPORT_OK = qw(htmlInput expand setcross setfont);
 
-#*** htmlHead($title, $onload)
-# generate html head
-sub htmlHead {
-  my ($title, $onload) = @_;
+use DivinumOfficium::Globals;
+use DivinumOfficium::FileIO qw(do_read do_write);
+#use DivinumOfficium::DialogCommon qw(getdialog); # Cyclic dependency
 
-  my ($horasjs) = "<SCRIPT TYPE='text/JavaScript' LANGUAGE='JavaScript1.2'>\n" . horasjs() . '</SCRIPT>';
-  $onload && ($onload = " onload=\"$onload\";");
-
-  print <<"PrintTag";
-Content-type: text/html; charset=utf-8
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<HTML><HEAD>
-  <META NAME="Resource-type" CONTENT="Document">
-  <META NAME="description" CONTENT="Divine Office">
-  <META NAME="keywords" CONTENT="Divine Office, Breviarium, Liturgy, Traditional, Zsolozsma">
-  <META NAME="Copyright" CONTENT="Like GNU">
-  <meta name="color-scheme" content="dark light">
-  <STYLE>
-    /* https://www.30secondsofcode.org/css/s/offscreen/ */
-    .offscreen {
-      border: 0;
-      clip: rect(0 0 0 0);
-      height: 1px;
-      margin: -1px;
-      overflow: hidden;
-      padding: 0;
-      position: absolute;
-      width: 1px;
-    }
-    h1, h2 {
-      text-align: center;
-      font-weight: normal;
-    }
-    h2 {
-      margin-top: 4ex;
-      color: maroon;
-      font-size: 112%;
-      font-weight: bold;
-      font-style: italic;
-    }
-    p {
-      color: black;
-    }
-    a:link { color: $link; }
-    a:visited { color: $visitedlink; }
-    body {
-      background: $dialogbackground;
-    }
-    .contrastbg { background: white; }
-    .nigra { color: black; }
-
-PrintTag
-
-  if (our $whitebground) {
-    print <<"PrintTag";
-    \@media (prefers-color-scheme: dark) {
-      body {
-        background: black;
-        color: white;
-      }
-      table { color: white; }
-      a:link { color: #AFAFFF; }
-      a:visited { color: #AFAFFF; }
-      p { color: white; }
-      .contrastbg {
-        background: #3F3F3F;
-        color: white;
-      }
-      .nigra {  color: white;  }
-      }
-PrintTag
-  } else {
-    print <<"PrintTag";
-    \@media (prefers-color-scheme: dark) {
-      body {
-        background: $dialogbackground;
-        color: black;
-      }
-      select {
-        background: lightgrey;
-        color: black;
-      }
-      input[type="select"] {
-        background: lightgrey;
-        color: black;
-      }
-      input[type="submit"] {
-        background: grey;
-        color: black;
-      }
-      input[type="text"] {
-        background: white;
-        color: black;
-      }
-PrintTag
-  }
-
-  print <<"PrintTag";
-  </STYLE>
-  <TITLE>$title</TITLE>
-$horasjs
-</HEAD>
-<BODY $onload>
-<FORM ACTION="$officium" METHOD="post" TARGET="_self">
-PrintTag
-}
-
-sub htmlEnd {
-  if ($error) { print "<P ALIGN='CENTER'><FONT COLOR='red'>$error</FONT></P>\n"; }
-  if ($debug) { print "<P ALIGN='center'><FONT COLOR='blue'>$debug</FONT></P>\n"; }
-  print "</FORM></BODY></HTML>";
-}
-
-#*** htmlInput()
-# generates html inputs as input, select, checkbox
-# parmode = Label | Entry~>'width' | Text~>'rows'x'columns' |
-#        Checkbutton  | Radiobutton~>'itemlist' | Optionmenu~>itemarray |
-#        Listbox~>'itemlist' | Scale~>'from'~'to' | Filesel~>stock |
-#        Color | Font | Pixel |Position | Points | Area | Ngon
-#    itemlist is a comma separated list e.g "Radiobutton~>add,sub,both"
-#    itemarray is either ~>Optionmenu~>\@oarray @oarray defined by the caller program,
-#       or ~>Optionmenu~>oarray and defined by  [oarray] comma separated list entry in .setup file
-#       or ~>Optionmenu~>{item1, item2, ...} list
-#    stock option results a possibility to select the item from the stocked images
-# condition is useable if the first item is Optionselect. The item is shown only
-#   if condition string contains the selected item
-
-sub htmlInput {
-  my ($parname, $parvalue, $parmode, $parpar, $parfunc, $parhelp) = @_;
+sub htmlInput($parname, $parvalue, $parmode, $parpar, $parfunc, $parhelp) {
+  our $command;
   my $output = '';
+  my $parpos = substr($parname, 1);
 
   if ($parmode =~ /^label/i) {
     my $ilabel = $parvalue;
@@ -185,7 +61,7 @@ sub htmlInput {
     $rpar = $parpar;
     @rpar = split(',', $rpar);
 
-    for ($j = 1; $j <= @rpar; $j++) {
+    for (my $j = 1; $j <= @rpar; $j++) {
       my $checked = ($parvalue == $j) ? 'CHECKED' : '';
       if ($parmode =~ /vert/i) { $output .= "<TR><TD>"; }
       my $jsfunc = '';
@@ -227,6 +103,7 @@ sub htmlInput {
     my $a = $parpar;
     if (!$a) { $error = "Missing parameter for Optionmenu"; return ""; }
 
+    my @optarray;
     if ($a =~ /\@/ || ref($a) =~ /ARRAY/i) {
       @optarray = eval($a);
     } elsif ($a =~ /^\s*\{(.+)\}\s*$/) {
@@ -255,15 +132,13 @@ sub htmlInput {
 
 #*** cleanse(s)
 # Return tainted string s cleansed of dangerous characters.
-sub cleanse($) {
-  my $str = shift;
-
+sub cleanse($str) {
   unless ($str =~ /^\w*$/) {
 
     # Complex params are generally ;-separated chunks where
     # a chunk is either an identifier or a quoted string of assorted chars,
     # possibly preceded by an assignment $id= .
-    @parts = split(/;/, $str);
+    my @parts = split(/;/, $str);
 
     foreach my $part (@parts) {
       unless ($part =~ /^([^'`"\\={}()]*|'[^'`"\\]*'|\$\w+='[^'`"\\]*')$/i) {    #`
@@ -277,15 +152,10 @@ sub cleanse($) {
   return $str;
 }
 
-#*** beep()
-# generates a beep sound. Inactive in cgi version
-sub beep {
-}
-
 #*** strictparam(name)
 # get the parameter value for name, empty string if undef
-sub strictparam {
-  my $pstr = shift;
+sub strictparam($pstr) {
+  our $q;
   my $v = cleanse($q->param($pstr));
   $v = '' unless defined $v;
   return $v;
@@ -294,8 +164,7 @@ sub strictparam {
 #*** clean_setupsave($setupsave)
 # Takes a settings string in the format stored in the cookies, and returns a
 # cleaned version.
-sub clean_setupsave {
-  my $setupsave = shift;
+sub clean_setupsave($setupsave) {
   $setupsave =~ s/[‘’]|\x{e2}\x{80}(\x{98}|\x{99})/'/g;
   return $setupsave;
 }
@@ -303,9 +172,7 @@ sub clean_setupsave {
 #*** setfont($font, $text)
 # input font description is "[size][ italic][ bold] color" format, and the text
 # returns <FONT ...>$text</FONT> string
-sub setfont {
-  my $istr = shift;
-  my $text = shift;
+sub setfont($istr, $text) {
   return $text unless $istr;
 
   my $size = ($istr =~ /^\.*?([0-9\-\+]+)/i) ? $1 : 0;
@@ -328,7 +195,7 @@ sub setfont {
 
 # Fetch and cleanse cookies
 sub fetch_cookies() {
-  my %cookies = fetch CGI::Cookie;
+  my %cookies;# = fetch CGI::Cookie;
   $_->value(cleanse($_->value)) for values %cookies;
   return %cookies;
 }
@@ -337,10 +204,7 @@ sub fetch_cookies() {
 # get the cookie named as cname and sets the values into $setupname group
 # separates the perl scripts from the stack array
 # return the perl script string and the array reference
-sub getcookies {
-
-  my $cname = shift;
-  my $name = shift;
+sub getcookies($cname, $name) {
   my @sti = splice(@sti, @sti);
   my $sti = '';
   my $checkname = $name . 'check';
@@ -373,10 +237,7 @@ sub getcookies {
 
 #*** setcookies($cname, $name)
 #saves $name setup table as cookie named $cname
-sub setcookies {
-
-  my $cname = shift;
-  my $name = shift;
+sub setcookies($cname, $name) {
   my @values = split(';;', getsetup($name));
   my $value = '';
   my $checkname = $name . 'check';
@@ -410,9 +271,7 @@ sub setcookies {
 }
 
 #cookie for recognize the new day
-sub setcookie1 {
-  my $cname = shift;
-  my $value = shift;
+sub setcookie1($cname, $value) {
   my @t = localtime(time() + 60 * 60 * 24);
   my $t = timelocal($t[0], $t[1], $t[2], $t[3], $t[4], $t[5]);
   $c = $q->cookie(
@@ -423,8 +282,7 @@ sub setcookie1 {
   print "Set-Cookie:$c\n";
 }
 
-sub getcookie1 {
-  my $cname = shift;
+sub getcookie1($cname) {
   my $sti = 0;
   %cookies = fetch_cookies();
 
@@ -450,8 +308,7 @@ sub setcross {
 
 #*** setvrbar($line)
 # set R- & V-bar
-sub setvrbar {
-  my $line = shift;
+sub setvrbar($line) {
   if ($nofancychars) { return $line; }
   $line =~ s/^V\./℣./g;
   $line =~ s/^R\./℟./g;
@@ -460,8 +317,7 @@ sub setvrbar {
 
 #*** activate_links($text)
 # replace %Laudes% etc. with html link
-sub activate_links {
-  my ($text, $lang) = @_;
+sub activate_links($text, $lang) {
   our ($date1, $caller, $version, $lang2, $votive, $hora, $command);
   local ($_) = $$text;
 
@@ -491,9 +347,7 @@ sub activate_links {
 
 #*** setcell($text1, $lang1);
 # output the content of the cell
-sub setcell {
-  my $text = shift;
-  my $lang = shift;
+sub setcell($text, $lang) {
   my $width = ($only) ? 100 : 50;
 
   return unless ($text && $text !~ /^[_\s]+$/);
@@ -600,8 +454,7 @@ sub table_start {
 
 #antepost('$title')
 # prints Ante of Post call
-sub ante_post {
-  my $title = shift;
+sub ante_post($title) {
   if ($Ck) { return; }
   my $colspan = ($only) ? '' : 'COLSPAN="2"';
   print "<TR><TD VALIGN='TOP' $colspan ALIGN='CENTER'>\n";
@@ -641,8 +494,7 @@ sub table_end {
   print "</TABLE><A ID='$hora$searchind'></A>";
 }
 
-sub wnum {
-  my $item = shift;
+sub wnum($item) {
   $item =~ s/\<.*?\>//g;
   $item =~ s/\s[a-z]\.\s//ig;
   $item =~ s/[0-9,.,;:\-*]//g;
@@ -780,14 +632,6 @@ sub horas_menu {
   $output;
 }
 
-sub bottom_links_menu {
-  my ($compare) = shift;
-
-  my @options = map { "<A HREF=\"../../www/horas/Help/" . lcfirst($_) . ".html\" TARGET=\"_BLANK\">$_</A>\n"; }
-    qw(Versions Credits Download Rubrics Technical Help);
-  join("&emsp;\n", @options);
-}
-
 #*** html_dayhead($head, $subhead)
 # return day headline in html
 sub html_dayhead {
@@ -845,10 +689,8 @@ sub print_content {
 #*** getunits(\@s, $ind)
 # break the array into units separated by double newlines
 # from $ind to the returned new $ind
-sub getunit {
-  my $s = shift;
+sub getunit($s, $ind) {
   my @s = @$s;
-  my $ind = shift;
   my $t = '';
 
   while ($ind < @s) {

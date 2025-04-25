@@ -1,14 +1,4 @@
-<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01 Transitional//EN'>
-<HTML><HEAD>
-  <META NAME='author' CONTENT='Laszlo Kiss'>
-  <META NAME='Resource-type' CONTENT='Document'>
-  <META NAME='description' CONTENT='Breviarium Romanum'>
-  <META NAME='keywords' CONTENT='Church tradition, Breviarium, Officium Divinum'>
-  <TITLE>Divinum Officium Recitation Times</TITLE>
-  <link rel='stylesheet' href='brevi.css' type='text/css'>
-</HEAD>
-<BODY BGCOLOR='#eeeeee' TEXT='#333333'>
-
+[% WRAPPER 'original/help/layout.html.tt' title='Divinum Officium Recitation Times' %]
 <H1 ALIGN CENTER>Divinum Officium Recitation Times</H1>
 
 <P ALIGN=CENTER>
@@ -99,7 +89,7 @@ The computer read the full offices for each version in Latin, and recorded the t
 </TABLE><BR><BR>
 
 
-<H2 ALIGN=CENTER>Tabella Summorum<BR>
+<H2 ALIGN=CENTER>Tabella Summorum</H2><BR>
 
 <CENTER><TABLE BORDER=2 BGCOLOR='white' CELLPADDING=8>
 <TR><TH>hour</TH><TH>Tridentinum</TH><TH>Divino Afflatu</TH>
@@ -116,5 +106,4 @@ The computer read the full offices for each version in Latin, and recorded the t
 <A HREF=# onclick='window.close()';>Close</A></CENTER>
 
 </TD></TR></TABLE></CENTER>
-</BODY>
-</HTML>
+[% END %]

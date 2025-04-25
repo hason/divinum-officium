@@ -1,0 +1,48 @@
+[% BLOCK setuptable %]
+[%# #*** setuptable($command, $title)
+# generates page for options, using data from horas.dialog hash (in www/horas folder)
+#
+# data is a string scalar contisting on lines separated by ';;' two semicolons
+# each line have 3 to 5 elements separated by '~>' sign
+# labelstring~>$default~>type~>mode~>condition
+%]
+sub setuptable($command, $title) {
+$title =~ s/setupparameters/Options/i;
+
+<H1 ALIGN=CENTER><FONT COLOR=MAROON><B><I>[% title %]</I></B></FONT></H1>
+<TABLE BORDER=2 CELLPADDING=5 ALIGN=CENTER$background>
+    PrintTag
+
+    my $scripto = getdialog($command);
+    if (!$scripto) { $error = 'No setup parameter'; return; }
+    my $helpfile = "$htmlurl/help/horashelp.html";
+    $helpfile =~ s/\//\\/g;
+
+    my ($width, $rpar, @rpar, $size, @size, $range, @range, $j);
+    my $i = 1;
+
+    [% FOREACH split(';;', $scripto) %]
+    my ($parname, $parvar, $parmode, $parpar, $parpos, $parfunc, $parhelp) = split('~>');
+    my $parvalue = eval($parvar);
+
+    if (!$parpos) {
+    $parpos = $i;
+    $i++;
+    }
+    if (!$parmode) { next; }
+
+    <TR><TD ALIGN=left>
+            [% IF parmode != 'label' %]
+            if ($parhelp =~ /\#/) { $output .= "<A HREF=\"$helpfile$parhelp\" TARGET='_new'>\n"; }
+                [% parname %]
+                if ($parhelp =~ /\#/) { $output .= "</A>\n"; }
+            </TD><TD ALIGN=right>
+            [% END %]
+        [% html_input("I$parpos", $parvalue, $parmode, $parpar, $parfunc, $parhelp) %];
+    </TD></TR>
+    [% END %]
+</TABLE>
+<P ALIGN=CENTER>
+    <INPUT TYPE=SUBMIT NAME='button' VALUE=OK>
+</P>
+[% END %]

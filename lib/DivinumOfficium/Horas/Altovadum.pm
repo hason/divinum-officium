@@ -1,20 +1,15 @@
-#!/usr/bin/perl
+package DivinumOfficium::Horas::Altovadum;
+
+use v5.38;
+use strict;
+use warnings;
 use utf8;
+use Exporter 'import';
 
-use FindBin qw($Bin);
-use lib "$Bin/..";
-
-# Defines ScriptFunc and ScriptShortFunc attributes.
-#use horas::Scripting;
-
-#*** translate_cz()
 # translates a line from Latin to Czech
 # written for Necrologium from Vyšší Brod, CZ (Altovadum)
 # will hardly work on anything else...
-sub translate_cz : ScriptFunc {
-
-  my $line = shift;
-
+sub translate_cz($line) {
   $line =~ s/\t\t/  /;
   $line =~ s/ \t/  /;
   $line =~ s/\t/ /g;
@@ -845,13 +840,11 @@ sub translate_cz : ScriptFunc {
   return $line;
 }
 
-# *** regula_emaus ($lang)
 # returns the text of the Regula for the day
 # This is the version of Czech Benedictines,
 # which is being used also in Altovadum (O.Cist.)
-sub regula_emaus : ScriptFunc {
+sub regula_emaus($lang) {
 
-  my $lang = shift;
   my @a;
   my $t = setfont($largefont, translate("Regula", $lang)) . "\n_\n";
   my $d = $day;
@@ -984,9 +977,8 @@ sub regula_emaus : ScriptFunc {
 
 #*** necrologium ($lang)
 #returns the text of the Necrologium for the day
-sub necrologium : ScriptFunc {
+sub necrologium : ScriptFunc ($lang) {
 
-  my $lang = shift;
   my @a;
   my $t = setfont($largefont, translate("Necrologium", $lang)) . "\n";
   my $d = $day;
@@ -1046,11 +1038,9 @@ sub necrologium : ScriptFunc {
   return $t;
 }
 
-#*** martyrologium_cz($lang)
 #returns the text of the Czech martyrologium for the day
-sub martyrologium_cz : ScriptFunc {
+sub martyrologium_cz : ScriptFunc ($lang) {
 
-  my $lang = shift;
   my @a;
   my $t = setfont($largefont, translate("Necrologium", $lang)) . "\n";
   my $d = $day;
@@ -1142,5 +1132,3 @@ sub martyrologium_cz : ScriptFunc {
   $t .= '$Conclmart Cist' . "\n_\n";
   return $t;
 }
-
-1;

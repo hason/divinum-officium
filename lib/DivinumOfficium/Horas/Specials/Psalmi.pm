@@ -1,9 +1,12 @@
-# use strict;
-# use warnings;
+package DivinumOfficium::Horas::Specials::Psalmi;
+
+use strict;
+use warnings;
 use utf8;
 
-sub psalmi {
-  my $lang = shift;
+use DivinumOfficium::Globals;
+
+sub psalmi($lang) {
   our $psalmnum1 = 0;
   our $psalmnum2 = 0;
   our ($hora, $version, $duplex);
@@ -26,8 +29,7 @@ sub psalmi {
 
 #*** psalmi_minor($lang)
 #collects and returns psalms for prim, tertia, sexta, none, completorium
-sub psalmi_minor {
-  my $lang = shift;
+sub psalmi_minor($lang) {
   our (
     $version, $hora, $dayofweek, $winner, %winner, @dayname, $rule,
     $communerule, $rank, $laudes, $day, $year, %winner2, $label,
@@ -269,9 +271,7 @@ sub psalmi_minor {
 
 #*** psalmi_major($lang)
 # collects and return the psalms for laudes and vespera
-sub psalmi_major {
-  my $lang = shift;
-
+sub psalmi_major($lang) {
   our (
     $version, $hora, $rule, $psalmnum1, $psalmnum2, $laudes,
     $rank, $winner, $dayofweek, $vespera, @dayname, $duplex,
@@ -528,9 +528,7 @@ sub psalmi_major {
 
 #*** antetpsalm($psalmi_ref, $duplexf, $lang)
 # outputs (to @s) psalms with antiphonas
-sub antetpsalm {
-  my ($psalmi_ref, $duplexf, $lang) = @_;
-
+sub antetpsalm($psalmi_ref, $duplexf, $lang) {
   our (@s);
   my $lastant;
 
@@ -568,11 +566,8 @@ sub antetpsalm {
 
 #*** get_stThomas_feria($year)
 # used in trident psalmi_{major,minor}
-sub get_stThomas_feria {
-  my ($year) = shift;
+sub get_stThomas_feria($year) {
   my ($sec_, $min_, $hour_, $mday_, $mon_, $year_, $wday, $yday_, $isdst_) =
     localtime(timelocal(0, 0, 0, 21, 11, $year));
   $wday ? $wday : 1;    # on Sunday transfer stThomas to Feria II
 }
-
-1;

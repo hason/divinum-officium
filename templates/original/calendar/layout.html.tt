@@ -1,0 +1,62 @@
+[% PROCESS 'original/blocks.html.tt' %]
+
+[% WRAPPER 'original/layout.html.tt' title=title %]
+<A ID="top"></A>
+<H1>
+    <FONT COLOR="MAROON" SIZE="+1"><B><I>[% h1 %]</I></B></FONT>&nbsp;
+    <FONT COLOR="RED" SIZE="+1">[% compare ? "$version1 / $version2" : version1 %]</FONT>
+</H1>
+<P ALIGN="CENTER">
+    [% PROCESS calendar_head %]
+</P>
+<P ALIGN="CENTER">
+    [% MACRO months_list BLOCK %]
+        [% FOREACH i IN [1..12] %]
+            [% mn = MONTHNAMES.$i.substr(0, 3) %]
+            [% IF i != skip %]<A HREF=# onclick="setkm([% i %])">[% mn %]</A>[% ELSE %][% mn %][% END %][% suffix %]
+        [% END %]
+    [% END %]
+    [% PROCESS calendar_menu %]
+</P>
+
+<P ALIGN="CENTER">
+    <TABLE BORDER="$border" WIDTH="90%" CELLPADDING="3" [% IF whitebground %] class="contrastbg"[% END %]>
+        [% PROCESS calendar_table %]
+    </TABLE>
+</P>
+
+<P ALIGN='CENTER'>
+    [% html_input('version', version1, 'options', 'versions', "document.forms[0].submit()") %]
+    [% IF compare %]
+        [% html_input('version2', version2, 'options', 'versions', "document.forms[0].submit()") %]
+    [% END %]
+</P>
+<P ALIGN='CENTER'>
+    [% INCLUDE bottom_links %]
+</P>
+<P ALIGN="CENTER">
+    <A HREF="#" onclick="callkalendar([% compare ? 0 : 1 %], '[% mode %]')">[% compare ? 'Single Calendar' : 'Compare Calendars' %]</A>
+    [% IF mode == 'ordo' %]
+    &nbsp;&nbsp;&nbsp;<A HREF='[% path_for('_calendar', {format => 'ical', version => version1, kyear => year}) %]'>iCal</A>
+    [% END %]
+
+    my $date1 = strictparam('date1');
+    my $browsertime = strictparam('browsertime');
+
+    (my $command = strictparam('command')) =~ s/^pray//;
+
+    if ($command =~ /(Ante|Matutinum|Laudes|Prima|Tertia|Sexta|Nona|Vespera|Completorium|Past)/i) {
+    $command = "pray" . ($compare ? $1 : $command);    # Cofficium can't use Plures
+    }
+
+</P>
+<INPUT TYPE="HIDDEN" NAME="setup" VALUE="[% setupsave %]">
+<INPUT TYPE="HIDDEN" NAME="date1" VALUE="[% date %]">
+<INPUT TYPE="HIDDEN" NAME="kmonth" VALUE="[% month %]">
+<INPUT TYPE="HIDDEN" NAME="date" VALUE="[% date %]">
+<INPUT TYPE="HIDDEN" NAME="command" VALUE="[% command %]">
+<INPUT TYPE="HIDDEN" NAME="officium" VALUE="[% officium %]">
+<INPUT TYPE="HIDDEN" NAME="browsertime" VALUE="[% browsertime %]">
+<INPUT TYPE="HIDDEN" NAME="compare" VALUE="[% compare %]">
+<INPUT TYPE="HIDDEN" NAME="readings" VALUE="0">
+[% END %]

@@ -1,27 +1,4 @@
-<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01 Transitional//EN'>
-<HTML><HEAD>
-  <META NAME='author' CONTENT='Divinum Officium Project'>
-  <META NAME='Resource-type' CONTENT='Document'>
-  <META NAME='description' CONTENT='Breviarium Romanum'>
-  <META NAME='keywords' CONTENT='Church tradition, Breviarium, Divine Office, liturgy, Tridentine, old rite, Officium Divinum, Divinum Officium, breviary, missal, Missale, Missale Romanum, Mass, Missa, Misa, liturgie, liturgia, Messe, catholique, Catholic'>
-  <TITLE>Divinum Officium Rubrics</TITLE>
-  <link rel='stylesheet' href='brevi.css' type='text/css'>
-</HEAD>
-<BODY BGCOLOR='#eeeeee' TEXT='#333333'><BR><BR>
-<CENTER>
-<A HREF="versions.html">Versions</A>
-&nbsp;&nbsp;&nbsp;&nbsp; 
-<A HREF="credits.html">Credits</A>
-&nbsp;&nbsp;&nbsp;&nbsp; 
-<A HREF="download.html">Download</A>
-&nbsp;&nbsp;&nbsp;&nbsp; 
-Rubrics
-&nbsp;&nbsp;&nbsp;&nbsp; 
-<A HREF="technical.html">Technical</A>
-&nbsp;&nbsp;&nbsp;&nbsp; 
-<A HREF="help.html">Help</A>
-</FONT></CENTER><BR><BR>
-
+[% WRAPPER 'original/help/layout.html.tt' title='Divinum Officium Rubrics' %]
 <CENTER><TABLE WIDTH=90% BORDER=0 BGCOLOR='white' CELLSPACING=12><TR><TD>
 
 <H1><FONT COLOR=MAROON>Rubrics of the Roman Breviary</FONT></H1>
@@ -158,17 +135,4 @@ Source: Keller, Theo. <A HREF=http://www.gregorianbooks.com/gregorian/www/www.ke
 <CENTER><span class=tadmn>T.A.D.M.N.</span><BR></CENTER>
 </BODY></TABLE></TABLE>
 <BR>
-<CENTER>
-<A HREF="versions.html">Versions</A>
-&nbsp;&nbsp;&nbsp;&nbsp; 
-<A HREF="credits.html">Credits</A>
-&nbsp;&nbsp;&nbsp;&nbsp; 
-<A HREF="download.html">Download</A>
-&nbsp;&nbsp;&nbsp;&nbsp; 
-Rubrics
-&nbsp;&nbsp;&nbsp;&nbsp; 
-<A HREF="technical.html">Technical</A>
-&nbsp;&nbsp;&nbsp;&nbsp; 
-<A HREF="help.html">Help</A>
-</CENTER><BR><BR><BR>
-</HTML>
+[% END %]

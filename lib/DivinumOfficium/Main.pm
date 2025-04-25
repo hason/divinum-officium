@@ -1,40 +1,40 @@
 package DivinumOfficium::Main;
 
+use v5.38;
 use utf8;
 use strict;
 use warnings;
-use Carp;
+use Exporter 'import';
+
 use DivinumOfficium::FileIO qw(do_read);
 
-BEGIN {
-  require Exporter;
-  our $VERSION = 1.00;
-  our @ISA = qw(Exporter);
-  our @EXPORT_OK = qw(vernaculars liturgical_color);
-}
+our @EXPORT_OK = qw(vernaculars liturgical_color latin_uppercase);
 
-#*** vernaculars($basedir)
 # Returns a list of available vernacular languages for the datafiles rooted at
 # $basedir.
-sub vernaculars {
-  my $basedir = shift;
-  my @lines = do_read("$basedir/Linguae.txt") or croak q(Couldn't load language list.);
+sub vernaculars($basedir) {
+  my @lines = do_read("$basedir/Linguae.txt") or die q(Couldn't load language list.);
   return @lines;
 }
 
-sub liturgical_color {
-  $_ = shift;
-  return 'blue' if (/(?:Beat|Sanct)(?:ae|æ) Mari/ && !/Vigil/);
-  return 'red' if (/(?:Vigilia Pentecostes|Quattuor Temporum Pentecostes|Decollatione|Martyr)/i);
-  return 'grey' if (/(?:Defunctorum|Parasceve|Morte)/i);
-  return 'black' if (/^In Vigilia Ascensionis|^In Vigilia Epiphaniæ/);
+sub liturgical_color ($text) {
+  return 'blue' if ($text =~ /(?:Beat|Sanct)(?:ae|æ) Mari/ && $text !~ /Vigil/);
+  return 'red' if ($text =~ /(?:Vigilia Pentecostes|Quattuor Temporum Pentecostes|Decollatione|Martyr)/i);
+  return 'grey' if ($text =~ /(?:Defunctorum|Parasceve|Morte)/i);
+  return 'black' if ($text =~ /^In Vigilia Ascensionis|^In Vigilia Epiphaniæ/);
   return 'purple'
     if (
-    /(?:Vigilia|Quattuor|Rogatio|Passion|Palmis|gesim|(?:Majoris )?Hebdomadæ(?: Sanctæ)?|Sabbato Sancto|Dolorum|Ciner|Adventus)/i
+      $text =~ /(?:Vigilia|Quattuor|Rogatio|Passion|Palmis|gesim|(?:Majoris )?Hebdomadæ(?: Sanctæ)?|Sabbato Sancto|Dolorum|Ciner|Adventus)/i
     );
-  return 'black' if (/(?:Conversione|Dedicatione|Cathedra|oann|Pasch|Confessor|Ascensio|Cena)/i);
-  return 'green' if (/(?:Pentecosten(?!.*infra octavam)|Epiphaniam|post octavam)/i);
-  return 'red' if (/(?:Pentecostes|Evangel|Innocentium|Sanguinis|Cruc|Apostol)/i);
+  return 'black' if ($text =~ /(?:Conversione|Dedicatione|Cathedra|oann|Pasch|Confessor|Ascensio|Cena)/i);
+  return 'green' if ($text =~ /(?:Pentecosten(?!.*infra octavam)|Epiphaniam|post octavam)/i);
+  return 'red' if ($text =~ /(?:Pentecostes|Evangel|Innocentium|Sanguinis|Cruc|Apostol)/i);
   return 'black';
 }
-1;
+
+# latin uppercase
+sub latin_uppercase {
+  local ($_) = shift;
+  s/.*/\U$&/;
+  s/æ/Æ/rg;
+}

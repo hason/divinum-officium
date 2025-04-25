@@ -1,11 +1,12 @@
-# use warnings;
-# use strict;
+package DivinumOfficium::Horas::Specials::Specprima;
+
+use warnings;
+use strict;
 use utf8;
 
-sub lectio_brevis_prima {
+use DivinumOfficium::Globals;
 
-  my $lang = shift;
-
+sub lectio_brevis_prima($lang) {
   our ($version, %winner, %winner2, %commune, %commune2, $winner, $commune);
 
   my %brevis = %{setupstring($lang, 'Psalterium/Special/Prima Special.txt')};
@@ -38,11 +39,7 @@ sub lectio_brevis_prima {
   ($brevis, $comment);
 }
 
-sub capitulum_prima {
-
-  my $lang = shift;
-  my $withresponsory = shift;
-
+sub capitulum_prima($lang, $withresponsory) {
   our ($dayofweek, $version, %winner, $commune, $rank, @dayname, $label, %winner2);
 
   my %brevis = %{setupstring($lang, 'Psalterium/Special/Prima Special.txt')};
@@ -83,9 +80,7 @@ sub capitulum_prima {
   $capit . join("\n", @resp);
 }
 
-sub get_prima_responsory {
-  my $lang = shift;
-
+sub get_prima_responsory($lang) {
   our ($version, $month, $day, %commemoratio, $rule);
 
   my $key = gettempora('Prima responsory');
@@ -111,10 +106,7 @@ sub get_prima_responsory {
 
 #*** martyrologium($lang)
 #returns the text of the martyrologium for the day
-sub martyrologium {
-
-  my $lang = shift;
-
+sub martyrologium($lang) {
   our ($version, $year, $month, $day, $dayofweek);
 
   my $t = '';    # Title and Comment is now set in specials.pl for #Martyrolgium
@@ -201,9 +193,7 @@ sub martyrologium {
   return $t;
 }
 
-sub luna {
-
-  my ($month, $day, $year, $lang) = @_;
+sub luna($month, $day, $year, $lang) {
   my $epact2008 = 23;
   my $edays = date_to_days(1, 0, 2008);
   my $lunarmonth = 29.53059;
@@ -249,9 +239,7 @@ sub luna {
   }
 }
 
-sub gregor {
-
-  my ($month, $day, $year, $lang) = @_;
+sub gregor($month, $day, $year, $lang) {
   my $golden = $year % 19;
   my @epact = (29, 10, 21, 2, 13, 24, 5, 16, 27, 8, 19, 30, 11, 22, 3, 14, 25, 6, 17);
   my @om = (30, 29, 30, 29, 30, 29, 30, 29, 30, 29, 30, 29, 30, 100);
@@ -338,5 +326,3 @@ sub gregor {
 
   #return sprintf("%02i", $gday);
 }
-
-1;

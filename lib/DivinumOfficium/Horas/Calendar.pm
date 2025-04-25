@@ -1,18 +1,27 @@
-# required by kalendar.pl when display Ordinarium
+package DivinumOfficium::Horas::Calendar;
+
+use v5.38;
+use strict;
+use warnings;
 use utf8;
+use Exporter 'import';
+
+our @EXPORT_OK = qw(ordo_entry abbreviate_entry);
+
+use DivinumOfficium::Globals;
+use DivinumOfficium::Horas::Common qw(precedence setheadline);
 
 # prepare one day entry in ordo
-sub ordo_entry {
-  my ($date, $ver, $compare, $winneronly) = @_;
-
+sub ordo_entry($date, $ver, $compare, $winneronly) {
   our $version = $ver;
-  our ($day, $month, $year, $dayname, %scriptura, @commemoentries);
+  our ($day, $month, $year, $dayname, %scriptura, @commemoentries, $winner);
 
   precedence($date);
 
   my ($h1, $h2) = split(/\s*~\s*/, setheadline());
   return "$h1, $h2" if $winneronly;    # finish here for ical
 
+=cut
   my ($c1, $c2);
   $c1 = "<B>" . setfont(liturgical_color($h1), $h1) . "</B>" . setfont('1 maroon', "&ensp;$h2");
   $c1 =~ s/Hebdomadam/Hebd/i;
@@ -86,66 +95,46 @@ sub ordo_entry {
     $cv ||= '_';
   }
   return ($c1, $c2, $cv);
+=cut
+
 }
 
-# prepare row
-sub table_row {
-  my ($date) = shift;
-  our ($version1, $compare, $version2, $dayofweek);
-
-  my $d = substr($date, 3, 2) + 0;
-  my ($c1, $c2, $cv) = ordo_entry($date, $version1, $compare);
-
-  if ($compare) {
-    my ($c21, $c22, $cv2) = ordo_entry($date, $version2, $compare);
-    $c1 .= "<br/>$c21";
-    $c2 .= "<br/>$c22";
-    $cv .= "<br/>$cv2";
-  }
-  (
-    qq(<A HREF=# onclick="callbrevi('$date');">$d</A>),
-    $c1, $c2,
-    qq(<FONT SIZE="-2">$cv</FONT>),
-    @{[(DAYNAMES)[$dayofweek]]},
-  );
+# abbreviate entries for ical
+sub abbreviate_entry($entry) {
+  s/Duplex majus/dxm/;
+  s/Duplex/dx/;
+  s/Semiduplex/sdx/;
+  s/Simplex/splx/;
+  s/classis/cl./;
+  s/ Domini Nostri Jesu Christi/ D.N.J.C./;
+  s/Beatæ Mariæ Virginis/B.M.V./;
+  s/Abbatis/Abb./;
+  s/Apostoli/Ap./;
+  s/Apostolorum/App./;
+  s/Confessor\w+/Conf./g;
+  s/Doctoris/Doct./;
+  s/Ecclesiæ/Eccl./;
+  s/Episcopi/Ep./;
+  s/Episcoporum/Epp./;
+  s/Evangelistæ/Evang./;
+  s/Martyris/M./g;
+  s/Martyrum/Mm./g;
+  s/Papæ/P./g;
+  s/Viduæ/Vid./;
+  s/Virgin\w+/Vir./;
+  s/Hebdomadam/Hebd./i;
+  s/Quadragesim./Quad./i;
+  s/Secunda/II/;
+  s/Tertia/III/;
+  s/Quarta/IV/;
+  s/Quinta/V/;
+  s/Sexta/VI/;
+  s/Dominica minor/Dom. min./;
+  s/ Ferial//;
+  s/Feria major/Fer. maj./;
+  s/Feria privilegiata/Fer. priv./;
+  s/post Octavam/post Oct./;
+  s/Augusti/Aug./;
+  s/(Septem|Octo|Novem|Decem)bris/${1}b./;
+  $entry;
 }
-
-# html_header_ordo
-sub html_header {
-  htmlHead("Ordo: @{[(MONTHNAMES)[$kmonth]]} $kyear");
-
-  my $vers = $version1;
-  $vers .= ' / ' . $version2 if $compare;
-
-  my $output = <<"PrintTag";
-<H1>
-<FONT COLOR="MAROON" SIZE="+1"><B><I>Divinum Officium</I></B></FONT>&nbsp;
-<FONT COLOR="RED" SIZE="+1">$vers</FONT>
-</H1>
-<P ALIGN="CENTER">
-<A HREF=# onclick="setkm(15)">Kalendarium</A>&ensp;
-<FONT COLOR="MAROON" SIZE="+1"><B><I>Ordo @{[(MONTHNAMES)[$kmonth]]} A. D.</I></B></FONT>&nbsp;
-<LABEL FOR="kyear" CLASS="offscreen">Year</LABEL>
-<INPUT TYPE="TEXT" ID="kyear" NAME="kyear" VALUE="$kyear" SIZE=4>
-<A HREF=# onclick="prevnext(-1)">&darr;</A>
-<INPUT TYPE="submit" NAME="SUBMIT" VALUE=" " onclick="document.forms[0].submit();">
-<A HREF=# onclick="prevnext(1)">&uarr;</A>
-&ensp;<A HREF=# onclick="setkm(14)">Totus</A>
-</P><P ALIGN="CENTER">
-PrintTag
-
-  my @mmenu;
-  push(@mmenu, "<A HREF=# onclick=\"setkm(-1)\">«</A>\n") if $kmonth == 1;
-
-  foreach my $i (1 .. 12) {
-    my $mn = substr((MONTHNAMES)[$i], 0, 3);
-    $mn = "<A HREF=# onclick=\"setkm($i)\">$mn</A>\n" unless $i == $kmonth;
-    push(@mmenu, $mn);
-  }
-  push(@mmenu, "<A HREF=# onclick=\"setkm(13)\">»</A>\n") if $kmonth == 12;
-
-  $output . join('&nbsp;' x 3, @mmenu) . '</P>';
-}
-
-1;
-

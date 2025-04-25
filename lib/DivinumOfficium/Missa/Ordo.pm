@@ -1,11 +1,14 @@
-#!/usr/bin/perl
+package DivinumOfficium::Missa::Ordo;
+
+use v5.38;
+use strict;
+use warnings;
 use utf8;
 
-# áéíóöõúüûÁÉ  ‡
-# Name : Laszlo Kiss
-# Date : 01-20-08
-# Divine Office
-$a = 1;
+use DivinumOfficium::Globals;
+use DivinumOfficium::Horas::Common qw(precedence);
+use DivinumOfficium::Missa::Propers qw(specials);
+use DivinumOfficium::Horas::Webdia qw(expand);
 
 #*** ordo()
 # collects and prints the ordo
@@ -71,9 +74,7 @@ sub ordo {
 #*** resolve_refs($text_of_block, $lang)
 #resolves $name &name references and special characters
 #retuns the to be listed text
-sub resolve_refs {
-  my $t = shift;
-  my $lang = shift;
+sub resolve_refs($t, $lang) {
   my @t = split("\n", $t);
   my $t = '';
 
@@ -245,8 +246,7 @@ sub resolve_refs {
 
 #*** Alleluia($lang)
 # return the text Alleluia or Laus tibi
-sub Alleluia {
-  my $lang = shift;
+sub Alleluia($lang) {
   my $text = prayer('Alleluia', $lang);
   my @text = split("\n", $text);
   $text = $text[0];
@@ -257,16 +257,14 @@ sub Alleluia {
 
 #*** Benedicamus_Domino
 # adds Alleluia, alleluia for Pasc0
-sub Benedicamus_Domino {
-  my $lang = shift;
+sub Benedicamus_Domino($lang) {
   my $text = prayer('Benedicamus Domino', $lang);
   if ($dayname[0] !~ /Pasc0/i) { return $text; }
   my @text = split("\n", $text);
   return "$text[0]. Alleluia, alleluia\n$text[1]. Alleluia, alleluia\n";
 }
 
-sub depunct {
-  my $item = shift;
+sub depunct($item) {
   $item =~ s/[\.\,\:\?\!\"\'\;\*]//g;
   $item =~ s/[áÁ]/a/g;
   $item =~ s/[éÉ]/e/g;
@@ -279,8 +277,7 @@ sub depunct {
 
 #*** getordinarium($lang, $command)
 # returns the full pathname of ordinarium for the language and hora
-sub getordinarium {
-  my $lang = shift;
+sub getordinarium($lang) {
   my @script;
 
   if ($Propers && (@script = do_read("$datafolder/Latin/Ordo/Propers.txt"))) {
@@ -302,8 +299,7 @@ sub getordinarium {
   return @script;
 }
 
-sub columnsel {
-  my $lang = shift;
+sub columnsel($lang) {
   if ($Ck || $NewMass) { return ($column == 1) ? 1 : 0; }
   return ($lang =~ /$lang1/i) ? 1 : 0;
 }

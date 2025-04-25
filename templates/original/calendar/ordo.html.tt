@@ -1,0 +1,48 @@
+[% WRAPPER 'original/calendar/layout.html.tt' title="Ordo: " _ MONTHNAMES.$month _ " $year"  h1='Divinum Officium' %]
+
+[% BLOCK calendar_head %]
+    <A HREF=# onclick="setkm(15)">Kalendarium</A>&ensp;
+    <FONT COLOR="MAROON" SIZE="+1"><B><I>Ordo [% MONTHNAMES.$month %] A. D.</I></B></FONT>&nbsp;
+    <LABEL FOR="kyear" CLASS="offscreen">Year</LABEL>
+    <INPUT TYPE="TEXT" ID="kyear" NAME="kyear" VALUE="[% year %]" SIZE=4>
+    <A HREF=# onclick="prevnext(-1)">&darr;</A>
+    <INPUT TYPE="submit" NAME="SUBMIT" VALUE=" " onclick="document.forms[0].submit();">
+    <A HREF=# onclick="prevnext(1)">&uarr;</A>
+    &ensp;<A HREF=# onclick="setkm(14)">Totus</A>
+[% END %]
+
+[% BLOCK calendar_menu %]
+    [% months_list(skip=month, suffix="&nbsp;&nbsp;&nbsp;") %]
+[% END %]
+
+[% BLOCK calendar_table %]
+    <TR><TH>Dies</TH><TH>de Tempore</TH><TH>Sanctorum</TH><TH>Vespera</TH><TH>d.h.</TH></TR>
+    [% FOREACH cday IN [1 .. to] %]
+        [% IF month < 13 %] [%# loop over the days of a single month %]
+            [% date1 = sprintf('%02i-%02i-%04i', month, cday, year) %]
+        [% ELSE %]                                                             # loop over all days of the year
+            my ($yday, $ymonth, $yyear) = ydays_to_date($cday, $kyear);
+            [%# date1 = sprintf("%02i-%02i-%04i", $ymonth, $yday, $yyear) %]
+            $d1 = sprintf("%02i", $yday);
+
+            [% IF yday == 1 %]    # add extra headline at the start of a new month
+                $output .= note('bissextal') if $ymonth == 3 && $mode eq 'kal';
+                my $ms =
+                $mode eq 'kal'
+                ? $ymonth == 1
+                ? (MONTHNAMES)[$ymonth]
+                : qq(<A ID="@{[substr((MONTHNAMES)[$ymonth], 0, 3)]}">@{[(MONTHNAMES)[$ymonth]]}</A> <A HREF="#top">^</A>)
+                : qq(<A HREF=# onclick=\"setkm($ymonth)\">@{[(MONTHNAMES)[$ymonth]]} $kyear</A>);
+                <TR><TH COLSPAN="$cols" ALIGN="CENTER">[% ms %]</TH></TR>
+            [% END %]
+        [% END %]
+        <TR>
+            [% FOREACH row IN controller.table_row(date1, cday) %]
+                <TD ALIGN="CENTER">[% row %]</TD>
+            [% END %]
+        </TR>
+        [%# $output =~ s/{(.+?)}/ setfont('maroon', $1) /ge; %]
+    [% END %]
+</TABLE></P>
+[% END %]
+[% END %]

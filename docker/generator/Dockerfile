@@ -1,5 +1,5 @@
 # Docker file for using the standalone generator
-FROM        perl:5.28-slim as final
+FROM perl:5.40-slim as final
 LABEL maintainer="Stepan Srubar <breviarium@srubarovi.cz>"
 
 # Install packages

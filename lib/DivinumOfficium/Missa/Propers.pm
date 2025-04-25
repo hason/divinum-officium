@@ -1,27 +1,29 @@
-#!/usr/bin/perl
+package DivinumOfficium::Missa::Propers;
+
+use v5.38;
+use strict;
+use warnings;
 use utf8;
+use Exporter 'import';
 
-# áéíóöõúüûÁÉæ ‡
-# Name : Laszlo Kiss
-# Date : 01-20-08
-# Divine Office fills the chapters from ordinarium
-use FindBin qw($Bin);
-use lib "$Bin/..";
+our @EXPORT_OK = qw(specials);
 
+
+use DivinumOfficium::Globals;
 use DivinumOfficium::Directorium qw(check_coronatio);
+use DivinumOfficium::Horas::Common qw(subdirname);
 
 # Defines ScriptFunc and ScriptShortFunc attributes.
 use DivinumOfficium::Scripting;
-$a = 4;
 
 #*** specials(\@s, $lang)
 # input the array of the script for hora, and the language
 # fills the content of the various chapters from the databases
 # returns the text for further adjustment and print to sub horas
-sub specials {
-  my $s = shift;
-  my $lang = shift;
-  $octavam = '';    #check duplicate commemorations
+sub specials($s, $lang) {
+  our ($column);
+
+  our $octavam = '';    #check duplicate commemorations
   my %w = (columnsel($lang)) ? %winner : %winner2;
 
   if ($column == 1) {
@@ -112,18 +114,10 @@ sub specials {
   return @s;
 }
 
-#***  ($label, $comment, $ind, $lang, $prefix)
 # prepares for print the chapter headline.
 # $label is the large font (translated), prefix is untranslated
 # comment[ind] is translated
-sub setcomment {
-
-  my $label = shift;
-  my $comment = shift;
-  my $ind = shift;
-  my $lang = shift;
-  my $prefix = shift;
-
+sub setcomment($label, $comment, $ind, $lang, $prefix) {
   if ($comment =~ /Source/i && $votive) { $ind = 7; }
   $label = translate_label($label, $lang);
   my %comm = %{setupstring($lang, 'Ordo/Comment.txt')};
@@ -139,13 +133,9 @@ sub setcomment {
   push(@s, $label);
 }
 
-#*** translate_label($label, $lang)
 # Finds the equivalent of the latin label in translate file
 # Also changes 'Gradual' to 'Alleluja' during the Pascal season.
-sub translate_label {
-  my $item = shift;
-  my $lang = shift;
-
+sub translate_label($item, $lang) {
   if ($item =~ /Gradual/i && $dayname[0] =~ /Pasc[1-5]/i && $winner !~ /Defunct|C9/i) {
     translate('Alleluia', $lang);
   } else {
@@ -153,15 +143,11 @@ sub translate_label {
   }
 }
 
-#*** oratio($lang, $type)
 #input language
 # collects and prints the appropriate oratio and commemorationes
 # on ember days also includes all the additional lections
 # since they intervene before the other commemmorations
-sub oratio {
-
-  my $lang = shift;
-  my $type = shift;
+sub oratio($lang, $type) {
   my $retvalue = '';
   our %cc = undef;
   our $ccind = 0;
@@ -356,13 +342,8 @@ sub oratio {
   return resolve_refs($retvalue, $lang);
 }
 
-#*** setcc($str, $code, \%source) {
 #set str with calculated code to %cc
-sub setcc {
-
-  my $str = shift;
-  my $code = shift;
-  my $s = shift;
+sub setcc($str, $code, $s) {
   my %s = %$s;
   my $key = 90;
 
@@ -410,10 +391,8 @@ sub setcc {
   $cc{$key} = $str;
 }
 
-#*** getcc($retvalue)
 # adds the sorted items to retvalue
-sub getcc {
-  my $retvalue = shift;
+sub getcc($retvalue) {
   my $key;
 
   foreach $key (sort keys %cc) {
@@ -430,12 +409,8 @@ sub world_mission_sunday {
     && monthday($day, $month, $year, 1, 0) eq '104-0';
 }
 
-#*** commemoratio($item, $type, $lang)
 # adds commemoratio from $winner office $ind= hora
-sub commemoratio {
-  my $item = shift;
-  my $type = shift;
-  my $lang = shift;
+sub commemoratio($item, $type, $lang) {
   my $code = 10;
   if ($rank > 6.9 || $version =~ /(1955|196)/ && $winner{Rank} =~ /Dominica/i && !world_mission_sunday()) { return ''; }
   if ($rule =~ /no commemoratio/i) { return ''; }
@@ -478,11 +453,7 @@ sub commemoratio {
   }
 }
 
-sub getcommemoratio {
-
-  my $wday = shift;
-  my $type = shift;
-  my $lang = shift;
+sub getcommemoratio($wday, $type, $lang) {
   my %w = %{officestring($lang, $wday)};
   my %c = undef;
 
@@ -533,16 +504,10 @@ sub getcommemoratio {
   return $w;
 }
 
-#*** getproprium($name, $lang, $flag, $buidflag)
 # returns $name item from tempora or sancti file
 # if $flag and no item in the proprium checks commune
 # if buildflag is set adds a composing libe to building scrip
-sub getproprium {
-
-  my $name = shift;
-  my $lang = shift;
-  my $flag = shift;
-  my $buildflag = shift;
+sub getproprium($name, $lang, $flag, $buidflag) {
   my $w = '';
   my $c = 0;
   my $prefix = 0;
@@ -589,17 +554,10 @@ sub getproprium {
   return ($w, $c);
 }
 
-#*** getfromcommune($name, $ind, $lang, $flag, $buildflag)
 # collects and returns [$name $ind] item for the commemorated office from the commune
 # if $flag ir collects for vide reference too
 # if buildflag sets the building script item
-sub getfromcommune {
-
-  my $name = shift;
-  my $ind = shift;
-  my $lang = shift;
-  my $flag = shift;
-  my $buildflag = shift;
+sub getfromcommune($name, $ind, $lang, $flag, $buildflag) {
   my $c = '';
 
   if ($commemoratio{Rule} =~ /ex\s*(C[0-9]+[a-z]*)/) { $c = $1; }
@@ -625,12 +583,9 @@ sub getfromcommune {
   return $v;
 }
 
-#*** setbuild1($label, $coment)
 # set a red black line into building script
-sub setbuild1 {
+sub setbuild1($label, $coment) {
   if ($column != 1) { return; }    #to avoid duplication
-  my $label = shift;
-  my $comment = shift;
   $label =~ s/[\#\n]//g;
   $label = "$label";
   $buildscript .= setfont($redfont, $label) . " $comment\n";
@@ -638,19 +593,14 @@ sub setbuild1 {
 
 #*** setbuild2(($comment)
 # set a tabulated black line into building script
-sub setbuild2 {
+sub setbuild2($comment) {
   if ($column != 1) { return; }
-  my $comment = shift;
   $buildscript .= ",,,$comment\n";
 }
 
-#*** setbuild($line, $name, $vomment)
 # set a headline into building script
-sub setbuild {
+sub setbuild($file, $name, $comment) {
   if ($column != 1) { return; }
-  my $file = shift;
-  my $name = shift;
-  my $comment = shift;
   $source = $file;
   if ($source =~ /(.*?)\//s) { $source = $1; }
 
@@ -662,10 +612,8 @@ sub setbuild {
   $buildscript .= "$comment: $source $name\n";
 }
 
-#setalleluia(@capit) set alleluia
-sub setalleluia {
-  my @capit = @_;
-
+# set alleluia
+sub setalleluia(@capit) {
   if ($dayname[0] !~ /Pasc/i) {
     for ($i = 0; $i < @capit; $i++) {
       $capit[$i] =~ s/\&Gloria/\&Gloria1/;
@@ -696,7 +644,6 @@ sub setalleluia {
   return @capit;
 }
 
-#*** checksuffragium
 # versions 1956 and 1960 exclude from Ordinarium
 sub checksuffragium {
   if ($rule =~ /no suffragium/i) { return 0; }
@@ -708,11 +655,9 @@ sub checksuffragium {
   return 1;
 }
 
-#*** loadspecial($str)
 # removes second part of antifones for non 1960 versions
 # returns arrat of the string
-sub loadspecial {
-  my $str = shift;
+sub loadspecial($str) {
   my @s = split("\n", $str);
   if ($version =~ /196/) { return (@s); }
   my $i;
@@ -725,13 +670,11 @@ sub loadspecial {
   return @s;
 }
 
-#*** delconclusio($ostr)
 # deletes the conclusio from the string
-sub delconclusio {
+sub delconclusio($ostr) {
   $ctotalnum++;
   if ($version =~ /(1955|196)/ && $rank >= 5 && $ctotalnum > 2) { return ""; }
   if ($version =~ /(196|196)/ && $ctotalnum > 3) { return ""; }    # Fixme
-  my $ostr = shift;
   my @ostr = split("\n", $ostr);
   $ostr = '';
   if ($oremusflag) { $ostr = $oremusflag; $oremusflag = ''; }
@@ -747,13 +690,9 @@ sub delconclusio {
   return $ostr;
 }
 
-#*** replaceNdot($s, $lang)
 # repleces N. with name in $s from %c
 # return corrected string
-sub replaceNdot {
-  my $s = shift;
-  my $lang = shift;
-  my $name = shift;
+sub replaceNdot($s, $lang, $name) {
   if ($s !~ /N\./) { return $s; }
   my %c = (columnsel($lang)) ? %winner : %winner2;
   if (!$name) { $name = $c{Name}; }
@@ -771,13 +710,7 @@ sub replaceNdot {
   return $s;
 }
 
-sub replaceNpb {
-
-  my $s = shift;
-  my $pb = shift;
-  my $lang = shift;
-  my $let = shift;
-  my $e = shift;
+sub replaceNpb($s, $pb, $lang, $let, $e) {
   my @pb = split(',', $pb);
 
   $pb = ($lang =~ /Latin/i) ? $pb[0] : ($lang =~ /English/i) ? $pb[1] : $pb[2];
@@ -787,9 +720,7 @@ sub replaceNpb {
 }
 
 # This is Gloria Patri (not Gloria in excelsis).
-sub Gloria : ScriptFunc {
-  my $lang = shift;
-
+sub Gloria($lang) : ScriptFunc {
   # No GP during Passiontide
   if (DeTemporePassionis()
     && $rule !~ /defunct|C9/i)
@@ -808,9 +739,7 @@ sub Gloria : ScriptFunc {
   }
 }
 
-sub getitem {
-  my $type = shift;
-  my $lang = shift;
+sub getitem($type, $lang) {
   my %w = (columnsel($lang)) ? %winner : %winner2;
   my $w = $w{$type};
   if ($type =~ /Graduale/i && $dayname[0] =~ /Pasc/i && exists($w{GradualeP})) { $w = $w{'GradualeP'}; }
@@ -856,9 +785,7 @@ sub getitem {
   return $w;
 }
 
-sub Vidiaquam : ScriptFunc {
-  my $lang = shift;
-
+sub Vidiaquam : ScriptFunc ($lang) {
   if ($solemn && $dayofweek == 0 && $votive !~ /Defunct|C9/i) {
     my $name = ($dayname[0] =~ /Pasc/i) ? 'Vidi aquam' : 'Asperges me';
     my $w = prayer($name, $lang);
@@ -894,9 +821,7 @@ sub gloriflag {
 }
 
 # This Proper &LectionesTemporum handles ember day readings which precede the Collect
-sub LectionesTemporum {
-  my $lang = shift;
-
+sub LectionesTemporum($lang) {
   # Generate nothing unless there's a LectioL rule.
   return '' if $winner{Rule} !~ /LectioL([0-9])/i;
   my $n = $1;
@@ -955,23 +880,19 @@ sub Credo {
   return $flag;
 }
 
-sub introitus : ScriptFunc {
-  my $lang = shift;
+sub introitus : ScriptFunc ($lang) {
   return getitem('Introitus', $lang);
 }
 
-sub collect : ScriptFunc {
-  my $lang = shift;
+sub collect : ScriptFunc ($lang) {
   return oratio($lang, 'Oratio');
 }
 
-sub lectio : ScriptFunc {
-  my $lang = shift;
+sub lectio : ScriptFunc ($lang) {
   return getitem('Lectio', $lang) . "\$Deo gratias\n";
 }
 
-sub graduale : ScriptFunc {
-  my $lang = shift;
+sub graduale : ScriptFunc ($lang) {
   my $t = '';
   $t = getitem('Graduale', $lang);
 
@@ -984,8 +905,7 @@ sub graduale : ScriptFunc {
   return $t;
 }
 
-sub evangelium : ScriptFunc {
-  my $lang = shift;
+sub evangelium : ScriptFunc ($lang) {
   my $t = getitem('Evangelium', $lang);
   our ($rule, $version);
 
@@ -1002,20 +922,16 @@ sub evangelium : ScriptFunc {
   return $t;
 }
 
-sub offertorium : ScriptFunc {
-  my $lang = shift;
+sub offertorium : ScriptFunc ($lang) {
   return getitem('Offertorium', $lang);
 }
 
-sub secreta : ScriptFunc {
-  my $lang = shift;
+sub secreta : ScriptFunc ($lang) {
   my $t = oratio($lang, 'Secreta');
   return "\n$t";
 }
 
-sub prefatio : ScriptFunc {
-
-  my $lang = shift;
+sub prefatio : ScriptFunc ($lang) {
   my %pr = %{setupstring($lang, 'Ordo/Prefationes.txt')};
   my $name =
       ($version =~ /(1955|196)/ && $rule =~ /Prefatio1960=([a-z0-9]+)/i) ? $1
@@ -1046,8 +962,7 @@ sub prefatio : ScriptFunc {
   return norubr($pref);
 }
 
-sub norubr {
-  my $t = shift;
+sub norubr ($t) {
   if ($rubrics) { return $t; }
   $t =~ s/!!/``/g;
   $t =~ s/\n!.*?\n/\n/g;
@@ -1058,9 +973,7 @@ sub norubr {
 
 # Routine for handling rubrics in special sections added to the Mass
 # (preludes etc.).
-sub norubr1($) {
-  my $t = shift;
-
+sub norubr1($t) {
   if ($rubrics) {
     $t =~ s/\((.*?)\)/setfont($smallfont, $1)/ge;
   } else {
@@ -1070,8 +983,7 @@ sub norubr1($) {
   return $t;
 }
 
-sub communicantes($) : ScriptFunc {
-  my $lang = shift;
+sub communicantes : ScriptFunc ($lang) {
   our $version;
   my $name;
 
@@ -1095,8 +1007,7 @@ sub communicantes($) : ScriptFunc {
   return norubr($t);
 }
 
-sub hancigitur : ScriptFunc {
-  my $lang = shift;
+sub hancigitur : ScriptFunc ($lang) {
   if ($dayname[0] !~ /Pasc[07]/) { return ''; }
   my %pr = %{setupstring($lang, 'Ordo/Prefationes.txt')};
   my $t = chompd($pr{'H-Pent'});
@@ -1121,37 +1032,29 @@ sub CheckPax { !(our $solemn) || our $votive =~ /Defunct|C9/i || our $rule =~ /n
 sub CheckBlessing { our $votive =~ /Defunct|C9/i || our $rule =~ /no Benedictio/i; }
 sub CheckUltimaEv { our $rule =~ /no Ultima Evangelium/i; }
 
-sub communio : ScriptFunc {
-  my $lang = shift;
+sub communio : ScriptFunc ($lang) {
   return getitem('Communio', $lang);
 }
 
-sub Flectamus {
-  my $lang = shift;
+sub Flectamus ($lang) {
   return prayer('Flectamus', $lang);
 }
 
 # DominusVobiscum returns the prayer unless in IV Tempora when it's not usually used
 # the second argument 'opt' being true returns the prayer no matter what
-sub DominusVobiscum : ScriptFunc {
-  my $lang = shift;
-  my $opt = shift || 0;
-
+sub DominusVobiscum : ScriptFunc ($lang, $opt =  0) {
   # In missis IV temporum: "Post Kyrie, eleison, dicitur: Oremus. Flectamus genua. — Levate."
   return ($rule =~ /LectioL/ && !$opt) ? '' : prayer('Dominus vobiscum', $lang);
 }
 
-sub postcommunio : ScriptFunc {
-  my $lang = shift;
+sub postcommunio : ScriptFunc ($lang) {
   my $str = oratio($lang, 'Postcommunio');
   if ($rule =~ /Super pop/i) { $str .= "_\n_\n" . getitem('Super populum', $lang); }
   return $str;
 }
 
-sub itemissaest : ScriptFunc {
-
+sub itemissaest : ScriptFunc ($lang) {
   our ($version, $rule);
-  my $lang = shift;
   my $text = prayer('IteMissa', $lang);
   my @text = split("\n", $text);
   my $benedicamus = (gloriflag() && $version !~ /196/) || ($rule =~ /^\s*Benedicamus Domino\s*$/mi);
@@ -1167,16 +1070,13 @@ sub placeattibi {
   return 0;
 }
 
-sub Communio_Populi : ScriptFunc {
-  my $lang = shift;
+sub Communio_Populi : ScriptFunc ($lang) {
   return $officium =~ /Emissa/i
     ? ""
     : "<A HREF=\"mpopup.pl?popup=Communio&rubrics=$rubrics&lang1=$lang1&lang2=$lang2\" TARGET=\"_NEW\">Communio</A>\n";
 }
 
-sub Ultimaev : ScriptFunc {
-
-  my $lang = shift;
+sub Ultimaev : ScriptFunc ($lang) {
   my ($t, %p);
 
   my %win = columnsel($lang) ? %winner : %winner2;

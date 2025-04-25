@@ -1,22 +1,22 @@
-#!/usr/bin/perl
-use utf8;
+package DivinumOfficium::Horas::Horas;
 
-# Name : Laszlo Kiss
-# Date : 01-20-08
-# Divine Office
-use FindBin qw($Bin);
-use lib "$Bin/..";
+use v5.38;
+use utf8;
+use strict;
+use warnings;
+use Exporter 'import';
 
 use DivinumOfficium::LanguageTextTools
   qw(prayer rubric prex translate omit_regexp suppress_alleluia process_inline_alleluias alleluia_ant ensure_single_alleluia ensure_double_alleluia);
 use DivinumOfficium::Date qw(date_to_days days_to_date);
 
+our @EXPORT_OK = qw(adhoram postprocess_short_resp columnsel postprocess_ant postprocess_vr);
+
 my $precesferiales;
 
 $a = 1;
 
-sub adhoram {
-  my $hora = shift;
+sub adhoram($hora) {
   my $head = "Ad $hora";
   $head =~ s/a$/am/;
   $head = 'Ad Vesperas' if $hora =~ /vesper/i;
@@ -25,8 +25,7 @@ sub adhoram {
 
 #*** horas($hora)
 # collects and prints the officium for the given $hora
-sub horas {
-  my $command = shift;
+sub horas($command) {
   $hora = $command;
   $hora = 'Vespera' if $hora =~ /vesper/i;
   print "<H2 ID='${hora}top'>" . adhoram($hora) . "</H2>\n";
@@ -61,9 +60,7 @@ sub horas {
 #*** resolve refs($text_of_block, $lang)
 #resolves $name &name references and special characters
 #retuns the to be listed text
-sub resolve_refs {
-  my $t = shift;
-  my $lang = shift;
+sub resolve_refs($t, $lang) {
   my @t = split("\n", $t);
 
   #handles expanding for skeleton
@@ -212,10 +209,7 @@ sub triduum_gloria_omitted() {
 #*** getantcross($psalmline, $antline)
 # set a	‡ sign if psalmline matches antline
 # eliminating accents and pintuation
-sub getantcross {
-
-  my $psalmline = shift;
-  my $antline = shift;
+sub getantcross($psalmline, $antline) {
   my @psalmline = split(' ', $psalmline);
   my @antline = split(' ', $antline);
   my $pind = 0;
@@ -252,8 +246,7 @@ sub getantcross {
   return $psalmline;
 }
 
-sub depunct {
-  my $item = shift;
+sub depunct($item) {
   $item =~ s/[.,:?!"';*()]//g;
   $item =~ s/[áÁ]/a/g;
   $item =~ s/[éÉ]/e/g;
@@ -266,9 +259,7 @@ sub depunct {
   return $item;
 }
 
-sub adjust_refs {
-  use strict;
-  my ($name, $lang) = @_;
+sub adjust_refs($name, $lang) {
   our ($rule, @dayname, $winner, $smallfont, $priest);
 
   if ($name =~ /\&Gloria/ && $rule =~ /Requiem gloria/i) {
@@ -301,11 +292,7 @@ sub adjust_refs {
 
 #*** setlink($name, $ind, $lang
 # sets a link for expand a skeleton chapter line or to call a popup
-sub setlink {
-
-  my $name = shift;
-  my $ind = shift;
-  my $lang = shift;
+sub setlink($name, $ind, $lang) {
   my $disabled = ($name =~ omit_regexp()) ? 'DISABLED' : '';
   my $smallflag = ($name =~ /(ante|post)/i) ? 1 : 0;
 
@@ -413,8 +400,7 @@ sub setlink {
   return "$t$name$after";
 }
 
-sub get_link_name {
-  my $name = shift;
+sub get_link_name($name) {
   our $priest;
   our @dayname;
   our $hora;
@@ -444,9 +430,7 @@ sub get_link_name {
 
 #*** ant_special($lang)
 # return special ant. for canticum major hours & duplexflag;
-sub ant123_special {
-  my $lang = shift;
-
+sub ant123_special($lang) {
   my $ant, $duplexf;
 
   if ($month == 12 && ($day > 16 && $day < 24) && $winner =~ /tempora/i) {
@@ -477,11 +461,7 @@ sub ant123_special {
 #*** canticum($psnum, $lang)
 # returns the formatted text of Benedictus, Magnifificat or Nunc dimittis ($num=1-3)
 # with antiphones
-sub canticum {
-
-  my $item = shift;
-  my $lang = shift;
-
+sub canticum($item, $lang) {
   our ($hora, $vespera);
   my $num =
       $hora eq 'Laudes' ? 2
@@ -537,10 +517,7 @@ sub laudes {
 
 #*** getordinarium($lang, $command)
 # returns the ordinarium for the language and hora
-sub getordinarium {
-  my $lang = shift;
-  my $command = shift;
-
+sub getordinarium($lang, $command) {
   $command =~ s/Vesperae/Vespera/;
   if ($command =~ /Tertia|Sexta|Nona/i) { $command = 'Minor'; }    # identical for Terz/Sext/Non
 
@@ -557,8 +534,7 @@ sub getordinarium {
 
 #*** setasterisk($line)
 # stets the asterisk to a non pointed psalm verse line by line
-sub setasterisk {
-  my $line = shift;
+sub setasterisk($line) {
   $line =~ s/\s*$//;
   if ($line =~ /\*(.*)/ && length($1) > 9) { return $line; }
   my $lp2 = (length($line) > 64) ? 24 : (length($line) < 24) ? 6 : 12;
@@ -603,16 +579,14 @@ sub setasterisk {
   return "$l *$t";
 }
 
-sub columnsel {
-  my $lang = shift;
+sub columnsel($lang) {
   if ($Ck) { return ($column == 1) ? 1 : 0; }
   return ($lang =~ /^$lang1$/i) ? 1 : 0;
 }
 
 #*** postprocess_ant($ant, $lang)
 # Performs necessary adjustments to an antiphon.
-sub postprocess_ant(\$$) {
-  my ($ant, $lang) = @_;
+sub postprocess_ant($ant, $lang) {
   our (@dayname, $votive);
 
   # Don't do anything to null antiphons.
@@ -622,8 +596,7 @@ sub postprocess_ant(\$$) {
 
 #*** postprocess_vr($vr, $lang)
 # Performs necessary adjustments to a versicle and repsonse.
-sub postprocess_vr(\$$) {
-  my ($vr, $lang) = @_;
+sub postprocess_vr($vr, $lang) {
   our (@dayname, $votive);
 
   # Don't do anything to null v/r.
@@ -639,8 +612,7 @@ sub postprocess_vr(\$$) {
 
 #*** postprocess_short_resp(@capit, $lang)
 # Performs necessary adjustments to a short responsory.
-sub postprocess_short_resp(\@$) {
-  my ($capit, $lang) = @_;
+sub postprocess_short_resp($capit, $lang) {
   our (@dayname, $votive);
 
   s/&Gloria1?/&Gloria1/ for (@$capit);
@@ -669,8 +641,6 @@ sub postprocess_short_resp(\@$) {
 #*** alleluia_required
 # check if alleluia addition is required
 # it is Paschaltide and not officium defunctorum or BMV Parv.
-sub alleluia_required {
-  my ($dayname, $votive) = @_;
-
+sub alleluia_required($dayname, $votive) {
   $dayname =~ /Pasc/i && $votive !~ /C(?:9|12)/;
 }

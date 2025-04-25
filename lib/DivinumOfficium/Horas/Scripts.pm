@@ -1,11 +1,9 @@
-#!/usr/bin/perl
-use utf8;
+package DivinumOfficium::Horas::Scripts;
 
-# Name : Laszlo Kiss
-# Date : 01-20-08
-# Divine Office
-use FindBin qw($Bin);
-use lib "$Bin/..";
+use v5.38;
+use utf8;
+use strict;
+use warnings;
 
 use DivinumOfficium::LanguageTextTools
   qw(prayer translate omit_regexp suppress_alleluia process_inline_alleluias alleluia_ant ensure_single_alleluia ensure_double_alleluia);
@@ -16,17 +14,13 @@ use DivinumOfficium::Scripting;
 my $precesferiales;
 $a = 1;
 
-#*** teDeum($lang)
 # returns the text of the hymn
-sub teDeum : ScriptFunc {
-  my $lang = shift;
+sub teDeum : ScriptFunc ($lang) {
   return "\n!Te Deum\n" . prayer('Te Deum', $lang);
 }
 
-#*** Alleluia($lang)
 # return the text Alleluia or Laus tibi
-sub Alleluia : ScriptFunc {
-  my $lang = shift;
+sub Alleluia : ScriptFunc ($lang) {
   my $text = prayer('Alleluia', $lang);
   my @text = split("\n", $text);
 
@@ -42,21 +36,18 @@ sub Alleluia : ScriptFunc {
 
 #*** Gloria
 # returns the text or the omit notice
-sub Gloria : ScriptFunc {
-  my $lang = shift;
+sub Gloria : ScriptFunc ($lang) {
   if (triduum_gloria_omitted()) { return ""; }
   if ($rule =~ /Requiem gloria/i) { return prayer('Requiem', $lang); }
   return prayer('Gloria', $lang);
 }
 
-sub Gloria1 : ScriptFunc {    #* responsories
-  my $lang = shift;
+sub Gloria1 : ScriptFunc ($lang) {    #* responsories
   if ($dayname[0] =~ /(Quad5|Quad6)/i && $winner !~ /Sancti/i && $rule !~ /Gloria responsory/i) { return ""; }
   return prayer('Gloria1', $lang);
 }
 
-sub Gloria2 : ScriptFunc {    #*Invitatorium
-  my $lang = shift;
+sub Gloria2 : ScriptFunc ($lang) {    #*Invitatorium
   if ($dayname[0] =~ /(Quad[56])/i) { return ""; }
   if ($rule =~ /Requiem gloria/i) { return prayer('Requiem', $lang); }
   return prayer('Gloria', $lang);
@@ -64,8 +55,7 @@ sub Gloria2 : ScriptFunc {    #*Invitatorium
 
 #*** Dominus_vobiscum
 #returns the text of the 'Domine exaudi' for non priests
-sub Dominus_vobiscum : ScriptFunc {
-  my $lang = shift;
+sub Dominus_vobiscum : ScriptFunc ($lang) {
   my $text = prayer('Dominus', $lang);
   my @text = split("\n", $text);
 
@@ -82,29 +72,24 @@ sub Dominus_vobiscum : ScriptFunc {
   return $text;
 }
 
-sub Dominus_vobiscum1 : ScriptFunc {    #* prima after preces
-  my $lang = shift;
+sub Dominus_vobiscum1 : ScriptFunc ($lang) {    #* prima after preces
   if ((preces('Dominicales et Feriales') || $litaniaflag) && !$priest) { $precesferiales = 1; }
   return Dominus_vobiscum($lang);
 }
 
-sub Dominus_vobiscum2 : ScriptFunc {    #* officium defunctorum
-  my $lang = shift;
+sub Dominus_vobiscum2 : ScriptFunc ($lang) {    #* officium defunctorum
   if (!$priest) { $precesferiales = 1; }
   return Dominus_vobiscum($lang);
 }
 
-sub mLitany : ScriptFunc {
-  my $lang = shift;
+sub mLitany : ScriptFunc ($lang) {
   if (preces('Dominicales')) { return ''; }
   return "\$Kyrie\n\$pater secreto";
 }
 
 #*** versiculum_ante_laudes($lang)
 # return versiculum ante Laudes used in Ordo Praedicatorum only
-sub versiculum_ante_laudes : ScriptFunc {
-  my $lang = shift;
-
+sub versiculum_ante_laudes : ScriptFunc ($lang) {
   my ($v, $c) = getantvers('Versum', 0, $lang);
 
   $v;
@@ -112,8 +97,7 @@ sub versiculum_ante_laudes : ScriptFunc {
 
 #*** Benedicamus_Domino
 # adds Alleluia, alleluia for Pasc0
-sub Benedicamus_Domino : ScriptFunc {
-  my $lang = shift;
+sub Benedicamus_Domino : ScriptFunc ($lang) {
   my $text = prayer('Benedicamus Domino', $lang);
 
   if (
@@ -173,8 +157,7 @@ sub handleverses {
 # selects the text, attaches the head,
 # sets red color for the introductory comments
 # returns the visible form
-sub psalm : ScriptFunc {
-  my $psnum = shift;
+sub psalm : ScriptFunc ($psnum) {
   my ($lang, $antline, $nogloria);
 
   #  limits of the division of the psalm.
@@ -263,8 +246,7 @@ sub psalm : ScriptFunc {
   $output;
 }
 
-sub Divinum_auxilium : ScriptFunc {
-  my $lang = shift;
+sub Divinum_auxilium : ScriptFunc ($lang) {
   my @text = split(/\n/, prayer("Divinum auxilium", $lang));
   $text[-2] = "V. $text[-2]";
   $text[-1] =~ s/.*\. // unless ($version =~ /Monastic/i);    # contract resp. "Et cum fratribus… " to "Amen." for Roman
@@ -272,8 +254,7 @@ sub Divinum_auxilium : ScriptFunc {
   join("\n", @text);
 }
 
-sub Domine_labia : ScriptFunc {
-  my $lang = shift;
+sub Domine_labia : ScriptFunc ($lang) {
   my $text = prayer("Domine labia", $lang);
 
   if ($version =~ /monastic/i) {                              # triple times with one cross sign
@@ -286,9 +267,7 @@ sub Domine_labia : ScriptFunc {
 
 #*** special($name, $lang)
 # used for 11-02 office
-sub special : ScriptFunc {
-  my $name = shift;
-  my $lang = shift;
+sub special : ScriptFunc ($name, $lang) {
   my $r = '';
   %w = (columnsel($lang)) ? %winner : %winner2;
 

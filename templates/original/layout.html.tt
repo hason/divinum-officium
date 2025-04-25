@@ -1,0 +1,94 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML><HEAD>
+    <META NAME="Resource-type" CONTENT="Document">
+    <META NAME="description" CONTENT="Divine Office">
+    <META NAME="keywords" CONTENT="Divine Office, Breviarium, Liturgy, Traditional, Zsolozsma">
+    <META NAME="Copyright" CONTENT="Like GNU">
+    <meta name="color-scheme" content="dark light">
+    <STYLE>
+        /* https://www.30secondsofcode.org/css/s/offscreen/ */
+        .offscreen {
+            border: 0;
+            clip: rect(0 0 0 0);
+            height: 1px;
+            margin: -1px;
+            overflow: hidden;
+            padding: 0;
+            position: absolute;
+            width: 1px;
+        }
+        h1, h2 {
+            text-align: center;
+            font-weight: normal;
+        }
+        h2 {
+            margin-top: 4ex;
+            color: maroon;
+            font-size: 112%;
+            font-weight: bold;
+            font-style: italic;
+        }
+        p {
+            color: black;
+        }
+        a:link { color: "[% link %]"; }
+        a:visited { color: "[% visitedlink %]"; }
+        body {
+            background: "[% dialogbackground %]";
+        }
+        .contrastbg { background: white; }
+        .nigra { color: black; }
+
+        [% IF whitebground %]
+            @media (prefers-color-scheme: dark) {
+        body {
+            background: black;
+            color: white;
+        }
+        table { color: white; }
+        a:link { color: #AFAFFF; }
+        a:visited { color: #AFAFFF; }
+        p { color: white; }
+        .contrastbg {
+            background: #3F3F3F;
+            color: white;
+        }
+        .nigra {  color: white;  }
+        }
+        [% ELSE %]
+              @media (prefers-color-scheme: dark) {
+              body {
+                  background: "[%dialogbackground %]";
+                  color: black;
+              }
+              select {
+                  background: lightgrey;
+                  color: black;
+              }
+              input[type="select"] {
+                  background: lightgrey;
+                  color: black;
+              }
+              input[type="submit"] {
+                  background: grey;
+                  color: black;
+              }
+              input[type="text"] {
+                  background: white;
+                  color: black;
+              }
+          [% END %]
+    </STYLE>
+    <TITLE>[% title %]</TITLE>
+<SCRIPT TYPE='text/JavaScript' LANGUAGE='JavaScript1.2'>
+[% INCLUDE original/horas.js.tt %]
+</SCRIPT>
+</HEAD>
+<BODY [% IF onload %] onload="[% onload %]"[% END %]>
+<FORM ACTION="[% officium %]" METHOD="post" TARGET="_self">
+[% content %]
+[% IF error %]<P ALIGN='CENTER'><FONT COLOR='red'>[% error %]</FONT></P>[% END %]
+[% IF debug %]<P ALIGN='center'><FONT COLOR='blue'>[% debug %]</FONT></P>[% END %]
+</FORM>
+</BODY>
+</HTML>

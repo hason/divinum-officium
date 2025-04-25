@@ -1,28 +1,20 @@
 package DivinumOfficium::Directorium;
 
+use v5.38;
 use strict;
 use warnings;
+use Exporter 'import';
 
 use FindBin qw($Bin);
-use lib "$Bin/..";
-
 use DivinumOfficium::FileIO qw(do_read);
 use DivinumOfficium::Date qw(leapyear geteaster get_sday nextday);
 
-BEGIN {
-  require Exporter;
-  our $VERSION = 1.00;
-  our @ISA = qw(Exporter);
-  our @EXPORT_OK = qw(get_from_directorium transfered check_coronatio dirge hymnmerge hymnshift);
-}
+our @EXPORT_OK = qw(get_from_directorium get_kalendar get_transfer get_stransfer get_tempora transfered
+  check_coronatio dirge hymnmerge hymnshift);
 
-### private vars
-
-my $datafolder = "$Bin/../../www/Tabulae";
+my $datafolder = "$Bin/data/Tabulae";
 my %_data;
 my %_dCACHE;    # cache everything mainly for kalendar.pl
-
-### private functions
 
 sub load_data_data {
   my (@lines) = do_read("$datafolder/data.txt");
@@ -40,19 +32,13 @@ sub load_data_data {
   $_dCACHE{loaded} = 1;
 }
 
-sub is_cached {
+sub is_cached($key) {
   load_data_data unless defined $_dCACHE{loaded};
-  my $key = shift;
 
   defined $_dCACHE{$key};
 }
 
-sub load_transfer_file {
-
-  my $name = shift;
-  my $filter = shift;
-  my $type = shift;
-
+sub load_transfer_file($name, $filter, $type) {
   my @lines = do_read "$datafolder/$type/$name.txt";
   my $regexp = qr{^(?:Hy|seant)?(?:01|02-[01]|02-2[01239]|dirge1)};
   my $regexp2 = qr{^(?:Hy|seant)?(?:01|02-[01]|02-2[01239]|.*=(01|02-[01]|02-2[0123])|dirge1)};
@@ -66,8 +52,7 @@ sub load_transfer_file {
   }
 }
 
-sub load_kalendar {
-  my ($version) = @_;
+sub load_kalendar($version) {
   die "Can't load kalendar for empty version" unless $version;
   die "Can't load kalendar for unknown version $version" unless defined $_data{$version};
   my $cache_key = "kalendar:$version";
@@ -82,8 +67,7 @@ sub load_kalendar {
   }
 }
 
-sub load_tempora {
-  my ($version) = @_;
+sub load_tempora($version) {
   die "Can't load tempora for empty version" unless $version;
   die "Can't load tempora for unknown version $version" unless defined $_data{$version};
   my $cache_key = "tempora:$version";
@@ -98,12 +82,10 @@ sub load_tempora {
 
 #*** load_transfer($version, $year, $stransferf)
 # load transfer table based on easterday
-sub load_transfer {
-  my $version = shift;
-  my $year = shift;
+sub load_transfer($version, $year, $stransferf = undef) {
   die "Can't load transfer for empty version" unless $version;
   die "Can't load transfer for unknown version $version" unless defined $_data{$version};
-  my $type = shift || 'Transfer';
+  my $type = $stransferf || 'Transfer';
   my $cache_key = lcfirst "$type:$version:$year";
 
   unless (is_cached($cache_key)) {
@@ -145,8 +127,7 @@ sub load_transfer {
 
 #*** load_stransfer($version, $year)
 # load scriptura transfer
-sub load_stransfer {
-  my ($version, $year) = @_;
+sub load_stransfer($version, $year) {
   load_transfer($version, $year, 'Stransfer');
 }
 
@@ -156,8 +137,7 @@ sub load_stransfer {
 # returns value for $key (ev $year) in specified $version of
 # 'kalendar|tempora|transfer|stransfer' from files located in
 # Tabulae subdirectories
-sub get_from_directorium {
-  my ($subject, $version, $key, $year) = @_;
+sub get_from_directorium($subject, $version, $key, $year = undef) {
   my $cache_key = "$subject:$version";
   $cache_key .= ":$year" if $year;
   my $base = $subject eq 'kalendar' ? 'base' : 'tbase';
@@ -171,14 +151,9 @@ sub get_from_directorium {
     || '';
 }
 
-#*** transfered($tname | $sday, $year, $version)
 # returns destination if the day for season or saint is transfered
 # otherwise false
-sub transfered {
-  my $str = shift;
-  my $year = shift;
-  my $version = shift;
-
+sub transfered($str, $year, $version) {
   $str =~ s+SanctiM?/++;
   return '' unless $str;
 
@@ -204,20 +179,14 @@ sub transfered {
   return '';
 }
 
-#*** check_coronatio($day, $month)
 # date should be taken from data file
 # and conformed with year transfer table
-sub check_coronatio {
-  my ($day, $month) = @_;
-
+sub check_coronatio($day, $month) {
   $day == 20 && $month == 3 ? 'Commune/Coronatio' : '';
 }
 
-#*** dirge($version, $hora, $day, $month, $year)
 # check if defunctorum shoul be said after hora
-sub dirge {
-  my ($version, $hora, $day, $month, $year) = @_;
-
+sub dirge($version, $hora, $day, $month, $year) {
   return 0 unless $hora =~ /Vespera|Laudes/i;
 
   my $sday =
@@ -231,22 +200,14 @@ sub dirge {
   $dirgeline =~ /$sday/;
 }
 
-#*** hymnmerge($version, $day, $month, $year)
 # true if Matutinum Hymn should merged with Vesperas
 # Rule XX.3
-sub hymnmerge {
-  my ($version, $day, $month, $year) = @_;
-
+sub hymnmerge($version, $day, $month, $year) {
   get_from_directorium("transfer", $version, sprintf("Hy%s", get_sday($month, $day, $year)), $year) eq '1';
 }
 
-#*** hymnshift($version, $day, $month, $year)
 # true if Hymns should shifted Vespera > Matutinum > Laudes > Vespera
 # Rule XX.3
-sub hymnshift {
-  my ($version, $day, $month, $year) = @_;
-
+sub hymnshift($version, $day, $month, $year) {
   get_from_directorium("transfer", $version, sprintf("Hy%s", get_sday($month, $day, $year)), $year) eq '2';
 }
-
-1;

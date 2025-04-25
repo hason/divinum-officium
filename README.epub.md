@@ -9,7 +9,7 @@ Using docker (easier)
 2. Install docker for your operating system. (On Windows, you can use [Docker Desktop](https://www.docker.com/products/docker-desktop/) or [Rancher Desktop](https://rancherdesktop.io/) with dockerd routine.)
 3. Open a terminal and navigate to the root folder of the DivinumOfficium files. Run the following command:  
 
-   `docker-compose -f docker-compose-generator.yml run generator bash`
+   `docker compose --profile generator run generator bash`
 4. A shell should open. Execute the command to generate the breviary files (see the Examples section below), e.g.:
 
    `./epubgen2.sh`

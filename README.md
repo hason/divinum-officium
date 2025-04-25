@@ -29,8 +29,8 @@ documentation](https://help.github.com/articles/using-pull-requests/).
 
 ### Data files
 
-The data files for the office and Mass are contained in the `web/www/horas/`
-and `web/www/missa/` directories. Within these directories there is a directory
+The data files for the office and Mass are contained in the `data/horas/`
+and `data/missa/` directories. Within these directories there is a directory
 for each language. The files are UTF-8-encoded text files (Windows-1252
 encoding is also supported, but is deprecated). The files are arranged into
 sections, with each section beginning with its name enclosed in square
@@ -44,12 +44,12 @@ examples.
 To pull a pre-built container, pull see docker image `ghcr.io/divinumofficium/divinum-officium:master`.
 
 To get the yml file:
-`$ wget https://raw.githubusercontent.com/DivinumOfficium/divinum-officium/master/docker-compose-prod.yml`
+`$ wget https://raw.githubusercontent.com/DivinumOfficium/divinum-officium/master/compose.prod.yaml`
 
 You can also use Docker Compose to load a copy of the container in one command:
 
 ```bash
-docker-compose -f docker-compose-prod.yml up -d
+docker compose -f compose.prod.yaml up -d
 ```
 
 This will download Divinum Officium, and run a local copy on your system, bound to
@@ -58,7 +58,7 @@ This will download Divinum Officium, and run a local copy on your system, bound 
 When you are done, stop the container by running:
 
 ```bash
-docker-compose -f docker-compose-prod.yml down
+docker compose -f compose.prod.yaml down
 ```
 
 ### Development
@@ -69,12 +69,16 @@ have docker and [Docker Compose](https://docs.docker.com/compose/) installed on
 your system. Run the following command in root directory of project:
 
 ```bash
-docker-compose up
+docker compose up
 ```
 
 This starts the web server and you can visit the website on
 `http://localhost:8080`. It will mount the current web directory into the container
 so that you can change files and do live-changes without restarting the container.
+
+```bash
+carmel rollout
+```
 
 #### MIT License
 

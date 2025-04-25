@@ -1,0 +1,58 @@
+function callbrevi(date) {
+    if (!date) date = '';
+    var officium = "$officium";
+    if (!officium || !officium.match('.pl')) officium = "officium.pl";
+    document.forms[0].$date_arg.value = date;
+    document.forms[0].action = ((officium.match(/missa/)) ? '../missa/' : '') + officium;
+    document.forms[0].target = "_self"
+    document.forms[0].submit();
+}
+
+//calls missa
+function callmissa() {
+    document.forms[0].action = "../missa/missa.pl";
+    if (document.forms[0].command.value != "") {
+        document.forms[0].command.value = "praySanctaMissa"
+    }
+    document.forms[0].target = "_self"
+    document.forms[0].submit();
+}
+
+//calls compare kalendar
+function callkalendar(c, m) {
+    document.forms[0].action = 'kalendar.pl';
+    if (m == 'kal') {
+        document.forms[0].kmonth.value = 15;
+    }
+    document.forms[0].compare.value = c;
+    document.forms[0].target = "_self"
+    document.forms[0].submit();
+}
+
+function prevnext(d) {
+    document.forms[0].kyear.value = parseInt(document.forms[0].kyear.value) + d;
+}
+
+function setkm(km) {
+    document.forms[0].kmonth.value = km;
+    if (km == -1) {
+        document.forms[0].kmonth.value = 12;
+        document.forms[0].kyear.value--;
+    } else {
+        if (km == 13) {
+            document.forms[0].kmonth.value = 1;
+            document.forms[0].kyear.value++;
+        }
+    }
+    document.forms[0].submit();
+}
+
+function setky(ky) {
+    document.forms[0].kyear.value = ky;
+    document.forms[0].submit();
+}
+
+function readings() {
+    document.forms[0].readings.value = 1;
+    document.forms[0].submit();
+}

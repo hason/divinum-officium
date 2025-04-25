@@ -1,0 +1,33 @@
+[% BLOCK headline %]
+my $head = shift;
+my $numsel = setmissanumber();
+my $headline = html_dayhead(setheadline(), $dayname[2]);
+
+<P ALIGN="CENTER">$headline</P>
+<P ALIGN="CENTER"><FONT COLOR="MAROON" SIZE="+1"><B><I>[% head %]</I></B>&nbsp;<FONT COLOR="RED" SIZE="+1">[% version %]</FONT></FONT></P>
+<P ALIGN="CENTER"><A HREF="#" onclick="callcompare()">Compare</A>
+&ensp;<A HREF="#" onclick="callofficium();">Divinum Officium</A>
+&ensp;
+<LABEL FOR="date" CLASS="offscreen">Date</LABEL>
+<INPUT ID="date" TYPE="TEXT" NAME="date" VALUE="$date1" SIZE="10">
+<A HREF="#" onclick="prevnext(-1)">&darr;</A>
+<INPUT TYPE="submit" NAME="SUBMIT" VALUE=" " onclick="parchange();">
+<A HREF="#" onclick="prevnext(1)">&uarr;</A>
+&ensp;
+<A HREF="#" onclick="callkalendar();">Ordo</A>
+&ensp;
+<A HREF="#" onclick="pset('parameters')">Options</A>
+    $numsel = "<BR/><BR/>[% numsel %]<BR/>" if $numsel;
+</P>
+
+<INPUT TYPE=HIDDEN NAME=setupm VALUE="[% setupsave %]">
+<INPUT TYPE=HIDDEN NAME=command VALUE="[% command.remove('/(pray|setup)/') %]">
+<INPUT TYPE=HIDDEN NAME=searchvalue VALUE="0">
+<INPUT TYPE=HIDDEN NAME=officium VALUE="[% officium %]">
+<INPUT TYPE=HIDDEN NAME=browsertime VALUE="[% browsertime %]">
+<INPUT TYPE=HIDDEN NAME=caller VALUE='0'>
+<INPUT TYPE=HIDDEN NAME=popup VALUE="">
+<INPUT TYPE=HIDDEN NAME=first VALUE="[% first %]">
+<INPUT TYPE=HIDDEN NAME=Propers VALUE="[% Propers %]">
+<INPUT TYPE=HIDDEN NAME=compare VALUE=0>
+[% END %]

@@ -1,6 +1,4 @@
-version: '3.5'
-
-# This docker-compose file is for running in a local production-like context. 
+# This docker compose file is for running in a local production-like context.
 
 services:
   web:

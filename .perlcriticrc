@@ -1,0 +1,5 @@
+verbose = 5
+severity = 1
+
+[Perl::Critic::Policy::Modules::RequireSortedUseStatements]
+severity = 5

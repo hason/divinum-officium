@@ -1,11 +1,15 @@
-# use strict;
-# use warnings;
+package DivinumOfficium::Horas::Specials::Orationes;
+
+use strict;
+use warnings;
 use utf8;
+
+use DivinumOfficium::Globals;
+use DivinumOfficium::SetupString qw(setupstring do_inclusion_substitutions);
 
 # *** checkcommemoratio \%office
 # return the text of [Commemoratio] [Commemoratio n] or an empty string
-sub checkcommemoratio {
-  my $w = shift;
+sub checkcommemoratio($w) {
   my %w = %$w;
   $w{'Commemoratio'} || $w{'Commemoratio 1'} || $w{'Commemoratio 2'} || $w{'Commemoratio 3'} || '';
 }
@@ -14,13 +18,7 @@ sub checkcommemoratio {
 # Collects and prints the appropriate oratio and commemorationes. If
 # $params{special} is set, the emitted title indicates that the prayers have a
 # special form.
-sub oratio {
-
-  my $lang = shift;
-  my $month = shift;
-  my $day = shift;
-  my %params = @_;
-
+sub oratio($lang, $month, $day, %params) {
   our (
     %winner, %winner2, $winner, $hora, $vespera, @dayname,
     $rule, $version, $rank, $dayofweek, %commune, %commune2,
@@ -566,10 +564,7 @@ sub oratio {
 #*** delconclusio($ostr)
 # deletes the conclusio from the string
 # returns string and conclusio
-sub delconclusio {
-  my $ostr = shift;
-  my $conclusio = shift;
-
+sub delconclusio($ostr, $conclusio) {
   if ($ostr =~ s/^(\$(?!Oremus).*?(\n|$)((_|\s*)(\n|$))*)//m) {
     $conclusio = $1;
   }
@@ -577,11 +572,7 @@ sub delconclusio {
   ($ostr, $conclusio);
 }
 
-sub getcommemoratio {
-
-  my $wday = shift;
-  my $ind = shift;
-  my $lang = shift;
+sub getcommemoratio($wday, $ind, $lang) {
   my %w = %{officestring($lang, $wday, $ind == 1)};
   my %c;
 
@@ -733,9 +724,7 @@ sub getcommemoratio {
 
 #*** vigilia_commemoratio($fname, $lang)
 # gets commemoratio for vigila
-sub vigilia_commemoratio {
-  my $fname = shift;
-  my $lang = shift;
+sub vigilia_commemoratio($fname, $lang) {
   my $w;
 
   our ($version, $month, $day, @dayname, $dayofweek);
@@ -778,9 +767,7 @@ sub vigilia_commemoratio {
   return $w;
 }
 
-sub getsuffragium {
-  my $lang = shift;
-
+sub getsuffragium($lang) {
   our ($version, @dayname, $hora, $commune, $month, $day, $churchpatron, %cwinner);
   $commune = "C10"
     if $cwinner{Rank} =~ /C1[012]/ && $hora eq 'Vespera'; # if Sancta Maria in Sabbato is commemorated on Friday Vespers
@@ -823,12 +810,7 @@ sub getsuffragium {
 # filename:item collects item from file
 # return the expanded string
 # useable for lectio, responsory, commemoratio
-sub getrefs {
-
-  my $w = shift;
-  my $lang = shift;
-  my $ind = shift;
-  my $rule = shift;
+sub getrefs($w, $lang, $ind, $rule) {
   my $file = '';
   my $item = '';
   my $flag = 0;
@@ -966,9 +948,9 @@ sub getrefs {
           if ($o =~ /N\./) { $o = replaceNdot($o, $lang, $name); }
         }
       }
-      do_inclusion_substitutions($a, $substitutions);
-      do_inclusion_substitutions($v, $substitutions);
-      do_inclusion_substitutions($o, $substitutions);
+      do_inclusion_substitutions(\$a, $substitutions);
+      do_inclusion_substitutions(\$v, $substitutions);
+      do_inclusion_substitutions(\$o, $substitutions);
       $a =~ s/\s*\*\s*/ /;
       $before ||= "!" . translate('Commemoratio', $lang) . " $s{Officium}";
       $w = $before . "\nAnt. $a\n" . "_\n$v" . "_\n$o" . "_\n$after";
@@ -985,5 +967,3 @@ sub getrefs {
   $w =~ s/\_\n\_/\_/g;
   return $w;
 }
-
-1;

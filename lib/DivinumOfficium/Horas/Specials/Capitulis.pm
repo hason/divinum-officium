@@ -1,10 +1,15 @@
-# use warnings;
-# use strict;
+package DivinumOfficium::Horas::Specials::Capitulis;
+
+use warnings;
+use strict;
 use utf8;
 
-sub capitulum_major {
-  my $lang = shift;
+use DivinumOfficium::Globals;
+use DivinumOfficium::SetupString qw(setupstring);
+use DivinumOfficium::Horas::Common qw(gettempora);
+use DivinumOfficium::Horas::Horas qw(postprocess_short_resp);
 
+sub capitulum_major($lang) {
   our ($winner, $vespera, $version, $hora, $label);
 
   my $name = 'Capitulum Laudes';    # same for Vespera
@@ -30,9 +35,7 @@ sub capitulum_major {
   $capit;
 }
 
-sub monastic_major_responsory {
-  my $lang = shift;
-
+sub monastic_major_responsory($lang) {
   our ($hora, $winner, $vespera, $version);
 
   my $key = "Responsory $hora";
@@ -108,9 +111,7 @@ sub monastic_major_responsory {
   $resp;
 }
 
-sub capitulum_minor {
-  my $lang = shift;
-
+sub capitulum_minor($lang) {
   our ($hora, $version, $votive, $label, $item);
 
   my %capit = %{setupstring($lang, 'Psalterium/Special/Minor Special.txt')};
@@ -193,5 +194,3 @@ sub capitulum_minor {
 
   @capit;
 }
-
-1;

@@ -1,27 +1,25 @@
+package DivinumOfficium::Horas::Specials;
+
+use v5.38;
 use utf8;
+use strict;
+use warnings;
+use Exporter 'import';
 
-# Name : Laszlo Kiss
-# Date : 01-20-08
 # Divine Office fills the chapters from ordinarium
-$a = 4;
 
+use DivinumOfficium::Globals;
+use DivinumOfficium::Horas::Horas qw(columnsel);
+use DivinumOfficium::SetupString qw(setupstring);
 use DivinumOfficium::Directorium qw(dirge);
 
-require "$Bin/specials/capitulis.pl";
-require "$Bin/specials/hymni.pl";
-require "$Bin/specials/orationes.pl";
-require "$Bin/specials/preces.pl";
-require "$Bin/specials/psalmi.pl";
-require "$Bin/specials/specprima.pl";
+our @EXPORT_OK = qw(specials checkmtv checksuffragium getanthoras getantvers getfrompsalterium getantvers getantvers getproprium setbuild setbuild1 setbuild2 setcomment tryoldhymn);
 
 #*** specials(\@s, $lang)
 # input the array of the script for hora, and the language
 # fills the content of the various chapters from the databases
 # returns the text for further adjustment and print to sub horas
-sub specials {
-  my $s = shift;
-  my $lang = shift;
-  my $special = shift;
+sub specials($s, $lang, $special) {
   $octavam = '';    #check duplicate commemorations
   my %w = columnsel($lang) ? %winner : %winner2;
 
@@ -404,14 +402,7 @@ sub specials {
 # prepares for print the chapter headline.
 # $label is the large font (translated), prefix is untranslated
 # comment[ind] is translated
-sub setcomment {
-
-  my $label = shift;
-  my $comment = shift;
-  my $ind = shift;
-  my $lang = shift;
-  my $prefix = shift;
-
+sub setcomment($label, $comment, $ind, $lang, $prefix) {
   if ($ind > -1) {
     if ($comment =~ /Source/i && $votive && $votive !~ /hodie/i) { $ind = 7; }
     $label = translate($label, $lang);
@@ -433,11 +424,7 @@ sub setcomment {
 # returns $name item from tempora or sancti file
 # if $flag and no item in the proprium checks commune
 # if buildflag is set adds a composing libe to building scrip
-sub getproprium {
-
-  my $name = shift;
-  my $lang = shift;
-  my $flag = shift;
+sub getproprium($name, $lang, $flag) {
   my $w = '';
   my $c = 0;
   my $prefix = 0;
@@ -512,9 +499,7 @@ sub getproprium {
 
 #*** tryoldhymn(\%source, $name)
 # return if possible for oldversion, name of Hymnus section in source
-sub tryoldhymn {
-  my $source = shift;
-  my $name = shift;
+sub tryoldhymn($source, $name) {
   my $name1 = $name;
 
   our ($version, $oldhymns);
@@ -525,17 +510,14 @@ sub tryoldhymn {
 
 #*** checkmtv(version, winner)
 # after "Cum Nostra Hac Aetate", the verse has always changed
-sub checkmtv {
-  my $version = shift;
-  my $winner = shift;
+sub checkmtv($version, $winner) {
   my %winner = %$winner;
   ($version =~ /1955|196/ || $winner{Rule} =~ /\;mtv/i) && $winner{Rule} =~ /C[45]/ ? '1' : '';
 }
 
 #*** getanthoras($lang)
 # returns the [Ant $hora] item for the officium
-sub getanthoras {
-  my $lang = shift;
+sub getanthoras($lang) {
   my $tflag = ($version =~ /Trident|Monastic/i && $winner =~ /Sancti/i) ? 1 : 0;
   $tflag = 0 if ($version =~ /1963/ && $winner =~ /SanctiM?.01-(?:(?:0[2-5789])|(?:1[012]))/);
 
@@ -566,11 +548,7 @@ sub getanthoras {
 # returns {$item $ind] item, trying first from the proprium then from the psalterium
 # $item = Ant Versum
 # $ind = 1 = Vespera1, 2 = Laudes  3=Vespera2; as special: 0=matutinum, 4=completorium
-sub getantvers {
-
-  my $item = shift;
-  my $ind = shift;
-  my $lang = shift;
+sub getantvers($item, $ind, $lang) {
   our ($hora, $winner);
   my $w = '';
   my $c = 0;
@@ -615,8 +593,7 @@ sub getantvers {
 
 #*** sub getseant($lang)
 # chech Ant3 from Str$year file
-sub getseant {
-  my $lang = shift;
+sub getseant($lang) {
   my $w = '';
 
   my $key = sprintf("seant%02i-%02i", $month, $day);
@@ -631,11 +608,7 @@ sub getseant {
 
 #*** geffrompsalterium($item, $ind, $lang)
 # returns $item (antiphona/versum) $ind(1-3/0) from $lang/Psalterium/Major Special.txt
-sub getfrompsalterium {
-  my $item = shift;
-  my $ind = shift;
-  my $lang = shift;
-
+sub getfrompsalterium($item, $ind, $lang) {
   #get from psalterium
   my %c = %{setupstring($lang, 'Psalterium/Special/Major Special.txt')};
   my $name = gettempora('getfrompsalterium major') . " $item";
@@ -649,10 +622,8 @@ sub getfrompsalterium {
 
 #*** setbuild1($label, $coment)
 # set a red black line into building script
-sub setbuild1 {
+sub setbuild1($label, $comment) {
   if ($column != 1) { return; }    #to avoid duplication
-  my $label = shift;
-  my $comment = shift;
   $label =~ s/[\#\n]//g;
   $label = "$label";
   $buildscript .= setfont($redfont, $label) . " $comment\n";
@@ -660,19 +631,15 @@ sub setbuild1 {
 
 #*** setbuild2(($comment)
 # set a tabulated black line into building script
-sub setbuild2 {
+sub setbuild2($comment) {
   if ($column != 1) { return; }
-  my $comment = shift;
   $buildscript .= ",,,$comment\n";
 }
 
 #*** setbuild($line, $name, $comment)
 # set a headline into building script
-sub setbuild {
+sub setbuild($file, $name, $comment) {
   if ($column != 1) { return; }
-  my $file = shift;
-  my $name = shift;
-  my $comment = shift;
   $source = $file;
 
   if ($source =~ /(.*?)\//s) {
@@ -768,10 +735,7 @@ sub loadspecial {
 #*** replaceNdot($s, $lang)
 # repleces N. with name in $s from %c
 # return corrected string
-sub replaceNdot {
-  my $s = shift;
-  my $lang = shift;
-  my $name = shift;
+sub replaceNdot($s, $lang, $name = undef) {
   if ($s !~ /N\./) { return $s; }
   my %c = columnsel($lang) ? %winner : %winner2;
   if (!$name) { $name = $c{Name}; }

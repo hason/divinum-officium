@@ -1,9 +1,13 @@
-# use strict;
-# use warnings;
+package DivinumOfficium::Horas::Specials::Hymni;
+
+use strict;
+use warnings;
 use utf8;
 
-sub gethymn {
-  my ($lang) = @_;
+use DivinumOfficium::Globals;
+use DivinumOfficium::SetupString qw(setupstring);
+
+sub gethymn($lang) {
   my ($name, $hymn, $hymnsource, $versum, $dname, $cr);
   our ($hora, $version, $vespera, @dayname);
   my $section = translate('Hymnus', $lang);
@@ -60,9 +64,8 @@ sub gethymn {
   $output;
 }
 
-sub hymnusmajor {
+sub hymnusmajor($lang) {
   our ($hora, $version, $vespera, @dayname, %winner, $day, $month, $year);
-  my $lang = shift;
   my $hymn = '';
   my $name = 'Hymnus';
   $name .= checkmtv($version, \%winner) if $hora eq 'Vespera';
@@ -110,9 +113,8 @@ sub hymnusmajor {
   ($hymn, $name);
 }
 
-sub doxology {
+sub doxology($lang) {
   our ($version, $rule, @dayname, %winner, %winner2, %commemoratio, $day, $month, $year, $dayofweek);
-  my $lang = shift;
   my $dox = '';
   my $dname = '';
 
@@ -147,5 +149,3 @@ sub doxology {
 
   ($dox, $dname);
 }
-
-1;

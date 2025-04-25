@@ -1,0 +1,54 @@
+[% WRAPPER 'original/calendar/layout.html.tt' title='Kalendarium' h1='Kalendarium' %]
+
+[% BLOCK calendar_head %]
+    <A HREF="#" onclick="callbrevi();">Divinum Officium</A>&nbsp;&ensp;
+    <A HREF="#" onclick="callmissa();">Sancta Missa</A>&nbsp;&ensp;
+    <A HREF="#" onclick="setkm(0);">Ordo</A>
+[% END %]
+
+[% BLOCK calendar_menu %]
+    [% IF month == 1 %]<A HREF=# onclick="setkm(-1)">«</A>[% END %]
+    [% months_list(skip=1, suffix="&nbsp;&ensp;") %]
+    [% IF month == 12 %]<A HREF=# onclick="setkm(13)">»</A>[% END %]
+[% END %]
+
+[% BLOCK calendar_table %]
+    <TR><TH>C.E.</TH><TH>D.L.</TH><TH></TH><TH>Dies</TH><TH></TH></TR>
+    [% IF mode == 'kal' %]
+        $kmonth = 14;
+        $kyear = 1977;
+
+        $cols = 5 + $compare;
+    [% ELSE %]
+        $cols = 5;
+    [% END %]
+
+    [% FOREACH cday in [1 .. to] %]
+        [% IF months < 13 %] # loop over the days of a single month
+            [% date1 = sprintf("%02i-%02i-%04i", $month, $cday, $year)  %]
+        $d1 = $cday;
+        [% ELSE %]                                                             # loop over all days of the year
+        my ($yday, $ymonth, $yyear) = ydays_to_date($cday, $kyear);
+        $date1 = sprintf("%02i-%02i-%04i", $ymonth, $yday, $yyear);
+        $d1 = sprintf("%02i", $yday);
+
+            [% IF yday == 1 %]    # add extra headline at the start of a new month
+            $output .= note('bissextal') if $ymonth == 3 && $mode eq 'kal';
+            my $ms =
+            $mode eq 'kal'
+            ? $ymonth == 1
+            ? (MONTHNAMES)[$ymonth]
+            : qq(<A ID="@{[substr((MONTHNAMES)[$ymonth], 0, 3)]}">@{[(MONTHNAMES)[$ymonth]]}</A> <A HREF="#top">^</A>)
+            : qq(<A HREF=# onclick=\"setkm($ymonth)\">@{[(MONTHNAMES)[$ymonth]]} $kyear</A>);
+            <TR><TH COLSPAN="$cols" ALIGN="CENTER">[% ms %]</TH></TR>
+            [% END %]
+        [% END %]]
+        <TR>
+            . join('',
+            map { '<TD' . (length($_) < 20 || $_ =~ /\<A/ ? ' ALIGN="CENTER"' : '') . ">$_</TD>" } table_row($date1, $cday),
+        </TR>
+
+        [% note('nigra19') %]
+        $output =~ s/{(.+?)}/ setfont('maroon', $1) /ge;
+    [% END %]
+[% END %]

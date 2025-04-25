@@ -1,16 +1,19 @@
-#!/usr/bin/perl
+package DivinumOfficium::Horas::Specmatins;
+
+use v5.38;
 use utf8;
+use strict;
+use warnings;
+use Exporter 'import';
 
-# Name : Laszlo Kiss
-# Date : 01-20-08
-# Divine Office Matins subroutines
-use FindBin qw($Bin);
-use lib "$Bin/..";
+our @EXPORT_OK = qw(invitatorium hymnusmatutinum nocturn psalmi_matutinum dayofweek2i);
+
+use DivinumOfficium::Globals;
 use DivinumOfficium::Directorium qw(get_from_directorium hymnmerge hymnshift);
-
-# Defines ScriptFunc and ScriptShortFunc attributes.
-use DivinumOfficium::Scripting;
-$a = 4;
+use DivinumOfficium::SetupString qw(setupstring);
+use DivinumOfficium::Horas::Common qw(gettempora);
+use DivinumOfficium::Scripting qw();
+use DivinumOfficium::Horas::Monastic qw(psalmi_matutinum_monastic);
 
 use constant {
   LT1960_DEFAULT => 0,
@@ -21,10 +24,8 @@ use constant {
   LT1960_OCTAVE => 5,
 };
 
-#*** invitatorium($lang)
 # collects and returns psalm 94 with the antipones
-sub invitatorium {
-  my $lang = shift;
+sub invitatorium($lang) {
   my %invit = %{setupstring($lang, 'Psalterium/Special/Matutinum Special.txt')};
   my $name = gettempora('Invitatorium');
 
@@ -107,10 +108,8 @@ sub invitatorium {
   }
 }
 
-#*** hymnus($lang)
 # collects and returns the hymn for matutinum
-sub hymnusmatutinum {
-  my $lang = shift;
+sub hymnusmatutinum($lang) {
   my $hymn = '';
   my $name = 'Hymnus';
   $name .= checkmtv($version, \%winner) unless (exists($winner{'Hymnus Matutinum'}));
@@ -157,8 +156,7 @@ sub hymnusmatutinum {
   ($hymn, $name);
 }
 
-sub nocturn {
-  my ($num, $lang, $psalmi, @select) = @_;
+sub nocturn($num, $lang, $psalmi, @select) {
   our ($version);
 
   push(@s, '!' . translate('Nocturn', $lang) . ' ' . ('I' x $num) . '.');
@@ -174,10 +172,8 @@ sub nocturn {
   push(@s, "\n", @vs, "\n");
 }
 
-#*** psalmi_matutinum($lang)
 # collects and returns psalms and lections for matutinum
-sub psalmi_matutinum {
-  $lang = shift;
+sub psalmi_matutinum($lang) {
   if ($version =~ /monastic/i && $winner{Rule} !~ /Matutinum Romanum/i) { return psalmi_matutinum_monastic($lang); }
   my %psalmi = %{setupstring($lang, 'Psalterium/Psalmi/Psalmi matutinum.txt')};
   my $d = ($version =~ /trident/i) ? 'Daya' : 'Day';
@@ -384,7 +380,6 @@ sub psalmi_matutinum {
   return;
 }
 
-#*** dayofweek2i
 # returns  for
 #   1    Monday, Thursday, Sunday
 #   2    Tuesday, Friday
@@ -395,7 +390,6 @@ sub dayofweek2i {
   $i;
 }
 
-#*** cujus_q
 # return shift from Cujus festum
 sub cujus_q {
   return 1 if our $rule =~ /Quorum Festum/;               # "Quorum by rule"
@@ -413,11 +407,7 @@ sub cujus_q {
   $j;
 }
 
-#*** get_absolutio_et_benedictiones
-sub get_absolutio_et_benedictiones {
-
-  my $num = shift;
-  my $lang = shift;
+sub get_absolutio_et_benedictiones($num, $lang) {
   our ($rule, $version, $commune, $winner);
 
   my %ben = %{setupstring($lang, 'Psalterium/Benedictions.txt')};
@@ -507,12 +497,9 @@ sub get_absolutio_et_benedictiones {
   @ben;
 }
 
-#*** lectiones($number, $language)
 #input: the index number for the nocturn, 0 for 3 lectiones only and the language
 #collects and prints the the Benedictio, and set the call for the lectiones/responsory
-sub lectiones {
-  my $num = shift;
-  my $lang = shift;
+sub lectiones($num, $lang) {
   our (@s, $version, $rule);
 
   my @a = get_absolutio_et_benedictiones($num, $lang);
@@ -541,9 +528,7 @@ sub lectiones {
   }
 }
 
-sub matins_lectio_responsory_alleluia(\$$) {
-  my ($r, $lang) = @_;
-
+sub matins_lectio_responsory_alleluia($r, $lang) {
   $$r =~ s/\s*~\s*/ /gs;
 
   my @resp = split("\n", $$r);
@@ -562,13 +547,10 @@ sub getC10readingname {
   return sprintf("Lectio M%02i%s", $month, ($version =~ /1963/i) ? $satnum : '');
 }
 
-#*** lectio($num, $lang)
 # input $num=index number for the lectio(1-9 or 1-3) and language
 # print the appropriate lectio collected from the winner or commune
 # handles the commemoratio as last
-sub lectio : ScriptFunc {
-  my $num = shift;
-  my $lang = shift;
+sub lectio : ScriptFunc ($num, $lang) {
   $ltype1960 = gettype1960();
   if ($winner =~ /C12/i) { $ltype1960 = LT1960_DEFAULT; }    # Officium parvum B.M.V.
 
@@ -1187,10 +1169,8 @@ sub lectio : ScriptFunc {
   $w;
 }
 
-sub lectiones_ex3_fiunt4 {
-  my $scrip = shift;
+sub lectiones_ex3_fiunt4($scrip, $num) {
   my %scrip = %$scrip;
-  my $num = shift;
 
   # split 3 lessons into 4
   my @scrips = ();
@@ -1208,15 +1188,13 @@ sub lectiones_ex3_fiunt4 {
   return $scrips[$num - 1];
 }
 
-sub parenthesised_text {
-  my $text = shift;
+sub parenthesised_text($text) {
   return setfont(our $smallfont, $text)
     if (length($text) < 20 || $text =~ /[0-9][.,]/);
   return "($text)";
 }
 
-sub tedeum_required {
-  my $num = shift;
+sub tedeum_required($num) {
   our ($rule, $version, $winner, $commune, @dayname, $dayofweek, $duplex);
 
   return $num == 12 if $version =~ /^Monastic/;
@@ -1248,17 +1226,14 @@ sub tedeum_required {
     );
 }
 
-#*** beginwith($str)
 # formats the benediction for building script output
-sub beginwith {
-  my $str = shift;
+sub beginwith($str) {
   my @str = split(" ", $str);
   $str = "$str[0] $str[1]";
   $str =~ s/\n/ /g;
   return $str;
 }
 
-#*** gettype1960
 #returns for 1960 version
 #  1 for ferial office
 #  2 for Sunday office
@@ -1295,14 +1270,11 @@ sub gettype1960 {
   return $type;
 }
 
-#*** responsory_gloria($lectio_text, $num)
 # adds or removes \&gloria to responsory
 # return the modified responsory
 #
-sub responsory_gloria {
-  my $w = shift;
+sub responsory_gloria($w, $num) {
   $w =~ s/\&Gloria1?/\&Gloria1/g;
-  my $num = shift;
 
   return $w
     if (($num == 1 && $winner =~ /(?:Adv1|Pasc0)-0/i) || $rule =~ /requiem Gloria/i);
@@ -1329,10 +1301,8 @@ sub responsory_gloria {
   $w;
 }
 
-#*** ant matutinum_paschal(@_ref, $lang)
 # sets matutinum antiphonas in pascal tide
-sub ant_matutinum_paschal {
-  my ($psalmi_ref, $lang, $proper) = @_;
+sub ant_matutinum_paschal($psalmi_ref, $lang, $proper) {
   my @psalmi = @$psalmi_ref;
   our (@dayname, $version, $winner);
 
@@ -1380,11 +1350,7 @@ sub ant_matutinum_paschal {
 
 #*** initiarule($month, $day, $year)
 # returns the key from the proper Str$ver$year table for the date
-sub initiarule {
-  my $month = shift;
-  my $day = shift;
-  my $year = shift;
-
+sub initiarule($month, $day, $year) {
   my $key = sprintf("%02i-%02i", $month, $day);
 
   return get_from_directorium('stransfer', $version, $key, $year);
@@ -1393,11 +1359,7 @@ sub initiarule {
 #*** resolveitable(\%w, $file, $lang)
 # input %w = winner hash; $file = Str$ver$year table actual line
 # returns the winner hash
-sub resolveitable {
-
-  my $w = shift;
-  my $file = shift;
-  my $lang = shift;
+sub resolveitable($w, $file, $lang) {
   my %w = %$w;
   my (%winit, @file, $lim, $start, $i);
 
@@ -1487,8 +1449,7 @@ sub resolveitable {
 
 #*** sub tferifile(/$w, /$winit, $start, $i, $lang)
 # fill $w{Lectio$start} and conditionally $w{Responsory$start} from %winit office
-sub tferifile {
-  my ($w, $winit, $start, $i, $lang) = @_;
+sub tferifile($w, $winit, $start, $i, $lang) {
   my %w = %$w;
   my %winit = %$winit;
   $w{"Lectio$start"} = $winit{"Lectio$i"};
@@ -1504,12 +1465,7 @@ sub tferifile {
 
 #*** STJamesRule(\%w, $lang, $num, $book);
 # returns the modified hash
-sub StJamesRule {
-
-  my $w = shift;
-  my $lang = shift;
-  my $num = shift;
-  my $s = shift;
+sub StJamesRule(\$w, $lang, $num, $s) {
   my %w = %$w;
   my %w1 = {};
   my $key;
@@ -1538,10 +1494,9 @@ sub StJamesRule {
   return %w;
 }
 
-sub prevdayl1 {
+sub prevdayl1($s) {
   my @monthtab = (31, 28, 31, 30, 31, 30, 31, 31, 30, 31.30, 31);
   if (leapyear($year)) { $month[1] = 29; }
-  my $s = shift;
   my @s = split(',', $s);
   $s = $s[0];
   my $d = $day - 1;
@@ -1554,11 +1509,8 @@ sub prevdayl1 {
   return 0;
 }
 
-#*** contract_scripture($num)
 # returns 1 if lesson 2 and 3 is to be contracted
-sub contract_scripture {
-  my $num = shift;
-  my $respFlag = shift or 0;
+sub contract_scripture($num, $respFlag =  0) {
   if ($num != 2 || $votive =~ /(C9|Defunctorum)/i) { return 0; }
   if ($version !~ /196/) { return 0; }
   if ($commune =~ /C10/i) { return 1; }
@@ -1572,17 +1524,13 @@ sub contract_scripture {
   return 0;
 }
 
-#*** getantmatutinum($lang)
 # Retrieve proper AntMatutinum (also from Commune if day requires so
 # and, if necessary, intersperse the Versicles for Nocturns
 # Backwards compatibility is ensured by checking if [AntMatutinum] already has the target lenght
 # Roman 9 lesson: 3 Nocturns à 3 Antiphones, Versicle and Response for a total of 15 lines
 # Monastic 12 lesson: 2 Nocturns à 6 Ant., V. & R. + 1 Ant. V. & R. for 3rd N. (total of 19 lines)
 # Monastic infra 8vam: 1 Nocturn à 6 Ant., V. & R. + 6 Ant. for 2nd Noct. (total of 14 lines)
-sub getantmatutinum {
-
-  my $lang = shift;
-
+sub getantmatutinum($lang) {
   my @nocturns = (1, 2, 3);    # Versicles from Nocturns
   my $ppN = 3;                 # Psalms per Nocturn (Roman default)
   my $target = 15;             # Target lines (Roman default)

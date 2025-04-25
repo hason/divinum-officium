@@ -1,31 +1,41 @@
-#!/usr/bin/perl
-use utf8;
+package DivinumOfficium::DialogCommon;
 
-# Name : Laszlo Kiss
-# Date : 01-25-04
-# dialog/setup related subs
-$a = 4;
-require "$Bin/../DivinumOfficium/SetupString.pl";
+use v5.38;
+use strict;
+use warnings;
+use FindBin qw($Bin);
+use Exporter 'import';
+
+our @EXPORT_OK = qw(getini chompd getdialog gethoras set_runtime_options version_displayname);
+
+use DivinumOfficium::Globals;
+use DivinumOfficium::FileIO qw(do_read);
+use DivinumOfficium::Setup qw(getsetup setsetupvalue);
+use DivinumOfficium::SetupString qw(setupstring);
 
 #*** getini(file)
 # loads and interprets .ini file
 # the file consists of $var='value' lines
-sub getini {
-  my $file = shift;
-  eval for do_read("$Bin/$file.ini");
+sub getini($file) {
+  my $path = "$Bin/config/$file.ini";
+  my @lines = do_read($path);
+
+  foreach my $line (@lines) {
+    $line =~ s/^\s*\$(\w+)\s*=/\$DivinumOfficium::Globals::$1 =/;
+    eval $line;
+  }
 }
 
 #*** chompd($str)
 # removes the newline characters from the end of the string
 # returns the modified string
-sub chompd {
-  my $a = shift;
+sub chompd($a) {
   chomp($a);
   $a =~ s/\r//g;
   return $a;
 }
 
-local %_dialog;
+my %_dialog;
 
 #*** getdialog($name, $sep, $col)
 # returns the array of the $col-th column from $dialog{$name} hash element
@@ -33,8 +43,8 @@ local %_dialog;
 # into and string array where the elements are separated by , comma
 # Each string is split by $sep separator, and the $col-th element
 # of this split is collected onto the returned array.
-sub getdialog {
-  my ($name) = @_;
+sub getdialog($name) {
+  our $datafolder;
 
   if (!$_dialog{'loaded'}) {
     $datafolder =~ /(missa|horas)$/;
@@ -51,16 +61,14 @@ sub getdialog {
   }
 }
 
-sub gethoras {
-  my ($C9f) = @_;
+sub gethoras($C9f) {
   my @horas = getdialog('horas');
   @horas = @horas[0, 1, 6] if ($C9f);
   $horas[-1] =~ s/\s*$//;
   @horas;
 }
 
-sub set_runtime_options {
-  my ($name) = @_;
+sub set_runtime_options($name, $params) {
   my @parameters = split(/;;\r?\n/, getdialog($name));
 
   # pop(@parameters);
@@ -79,14 +87,12 @@ sub set_runtime_options {
     }
     $parvalue = substr($parvalue, 1);
 
-    $p = strictparam($parvalue);
-
-    if ($p ne '') {
+    if ($p = %$params{$parvalue} // '') {
       setsetupvalue($name, $parpos - 1, $p);
     } else {
       $p = substr($setupt[$parpos - 1], index($setupt[$parpos - 1], '=') + 2, -1);
     }
-    $$parvalue = $p;
+    $DivinumOfficium::Globals::{$parvalue} = $p;
   }
   $blackfont =~ s/black//;    # can't use black in contrast mode
   $smallblack =~ s/black//;
@@ -94,8 +100,7 @@ sub set_runtime_options {
 
 #*** version_displayname
 # outputs version name for display (part before '/')
-sub version_displayname {
-  my $version = shift;
+sub version_displayname($version) {
   my $s = getdialog('versions');
   my $i = index($s, $version) - 1;
 
@@ -106,5 +111,3 @@ sub version_displayname {
     substr($s, $k, $i - $k);
   }
 }
-
-1;

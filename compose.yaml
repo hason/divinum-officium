@@ -1,9 +1,7 @@
-version: '3.5'
-
-# This docker-compose file is for running local development.
+# This docker compose file is for running local development.
 #
-# to update the base image, run 'docker-compose build'
-# and then run 'docker-compose up' to create the development environmet
+# to update the base image, run 'docker compose build'
+# and then run 'docker compose up' to create the development environmet
 # with the current code bind-mounted into the container for fast development
 
 services:
@@ -15,3 +13,14 @@ services:
       - ./web:/var/www/web:Z
     ports:
       - 8080:80
+
+  generator:
+    build:
+      context: ./
+      dockerfile: ./docker/generator/Dockerfile
+    volumes:
+      - ./standalone/tools/epubgen2/output:/var/www/standalone/tools/epubgen2/output:Z
+    stdin_open: true
+    tty: true
+    profiles:
+      - generator
