@@ -53,9 +53,9 @@ accented,plain
 Matutinum,Laudes,Prima,Tertia,Sexta,Nona,Vesperae,Completorium
 
 [communes]
-C1,Commune Apostolorum, 
+C1,Commune Apostolorum,
 C1a,Commune Evangelistarum,
-C1p,Commune Apostolorum tempore Paschali, 
+C1p,Commune Apostolorum tempore Paschali,
 C2,Commune Unius Martyris Pontificis (Missa Statuit),
 C2-1,Commune Unius Martyris Pontificis (Missa Sacerdotes Dei),
 C2a,Commune Unius Martyris non Pontificis (Missa In virtute),
